@@ -21,11 +21,11 @@
 /*2USC.									     */
 PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                    PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat,
-                   PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
+                   PULINT pCountersCDS, REAL RedFact, UCHAR Draw,
                    INT NDim, INT NSons, INT WWidth,
                    PLISTCDS plcds, PBTCDS pbtCDSEnd,
                    REAL FinalWidth,BOOL NoStoreFinalS,
-		               PBTV pbtv, PBTV pbtvGridPoints)
+		   PBTV pbtv, PBTV pbtvGridPoints)
 {
  //ppVCoor_O and _T are Vertex matrix allocated in main for origin and target.
  //To reduce memory allocations
@@ -58,23 +58,23 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
       for (k=0;k<NDim;k++)
              {
               if (Up)
-                 pCentreT[k]=pCDS_O->pCentre[k]-(1.0-Fraction)*pCDS_O->R/NDim;
+                 pCentreT[k]=pCDS_O->pCentre[k]-(1.0-RedFact)*pCDS_O->R/NDim;
               else
-                 pCentreT[k]=pCDS_O->pCentre[k]+(1.0-Fraction)*pCDS_O->R/NDim;
+                 pCentreT[k]=pCDS_O->pCentre[k]+(1.0-RedFact)*pCDS_O->R/NDim;
              }
         if (Up)
-	   pCentreT[j]+=pCDS_O->R*(1.0-Fraction);
+	   pCentreT[j]+=pCDS_O->R*(1.0-RedFact);
         else
-           pCentreT[j]-=pCDS_O->R*(1.0-Fraction);
+           pCentreT[j]-=pCDS_O->R*(1.0-RedFact);
 
       NSimplex=pCDS_O->NSimplex*NSons+1+j;
 
       if (IsCovered) //Previous simplex was covered. Let's use its memory.
-         UpdateCDSimplex (pCDS_T, NDim, pCentreT, Fraction*pCDS_O->L,
-                          Fraction*pCDS_O->R, Up, True, NSimplex, DivPhase);
+         UpdateCDSimplex (pCDS_T, NDim, pCentreT, RedFact*pCDS_O->L,
+                          RedFact*pCDS_O->R, Up, True, NSimplex, DivPhase);
       else
-         pCDS_T= NewCDSimplex(NDim, pCentreT, Fraction*pCDS_O->L,
-                              Fraction*pCDS_O->R, Up, True,
+         pCDS_T= NewCDSimplex(NDim, pCentreT, RedFact*pCDS_O->L,
+                              RedFact*pCDS_O->R, Up, True,
                               NSimplex, DivPhase);
 
      // PrintCDSimplex(pCDS_T,NDim);
@@ -96,7 +96,8 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
          {
           pCountersCDS[1]++; //Number of Evaluated
           //Store Vertices
-	  StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim, pbtvGridPoints);
+	  StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim,
+	                       pbtvGridPoints);
 
           if (LE(pCDS_T->L,FinalWidth))
              {
@@ -139,7 +140,7 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
 /*OnGrid = True for checking 2NUSC-Grid                                      */
 PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                     PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat,
-                    PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
+                    PULINT pCountersCDS, REAL RedFact, UCHAR Draw,
                     INT NDim, INT WWidth,
                     PLISTCDS plcds, PBTCDS pbtCDSEnd,
                     REAL FinalWidth, REAL IniLXiRatio,
@@ -162,9 +163,9 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
  NSimplex=pCDS_O->NSimplex*NSons+NSons;
 
 
- if (LT ( Fraction, (REAL)(NDim-1)/(REAL) NDim) )
+ if (LT ( RedFact, (REAL)(NDim-1)/(REAL) NDim) )
     {
-     UpDownRatio=(NDim*(1.0-Fraction)-1.0);
+     UpDownRatio=(NDim*(1.0-RedFact)-1.0);
      pCDS_T= NewCDSimplex(NDim, pCDS_O->pCentre,UpDownRatio*pCDS_O->L,
                 	  UpDownRatio*pCDS_O->R, Up, False,
                 	  NSimplex, pCDS_O->DivPhase);
@@ -194,7 +195,8 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
      pCountersCDS[1]++; //Number of Evaluated
 
      //Store Vertices
-     StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim, pbtvGridPoints);
+     StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim,  
+                          pbtvGridPoints);
 
      if (LE(pCDS_T->L,FinalWidth))
 	{
@@ -231,111 +233,204 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
     }
 
  pCDS_O= TwoUSC (pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat,
-                 pCountersCDS, Fraction, Draw, NDim, NSons, WWidth,
-                 plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv, pbtvGridPoints);
+                 pCountersCDS, RedFact, Draw, NDim, NSons, WWidth,
+                 plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv, 
+                 pbtvGridPoints);
  return NULL;
+}
+
+
+
+
+/*---------------------------------------------------------------------------*/
+void CheckIncFact(REAL IncFact, REAL NewIncFact, INT CurrNGrid, INT NewNGrid)
+{
+ if (GT(NewIncFact, IncFact))
+    {
+     fprintf(stderr," NewIncFact=%f < IncFact=%f.\n",
+             NewIncFact, IncFact);
+             exit(1);
+    }
+
+ if (LE(NewIncFact, 1.0))
+    {
+     fprintf(stderr,"IncFact           = %f \n"   ,IncFact);
+     fprintf(stderr,"IncFact*CurrNGrid = %1.21f\n",IncFact*CurrNGrid);
+     fprintf(stderr,"NewNGrid          = %d \n"   ,NewNGrid);
+     fprintf(stderr,"NewIncFact<= 1.0  = %f\n"    ,NewIncFact);
+     exit(1);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+/*Next increasing factor*/
+void NextIF (INT CurrNGrid, REAL IncFact, 
+             PINT pNewNGrid, PREAL pNewIncFact)
+{
+ /*Requires:
+ CurrNGrid : Current number of grids in the width
+ IncFact   : maximum increasing factor*/
+ /*returns
+ pNewNGrid : number of grids in the new width  
+ NewIncFact: Increasing factor used to get the new width. */
+ 
+ INT  NewNGrid; 	//Number of Grids for the new Width
+ REAL NewIncFact;	//New Increasing Factor
+ 
+     
+ //New number of grids    
+  if ( EQ (IncFact*(REAL)CurrNGrid, round(IncFact*(REAL)CurrNGrid) ) )
+     NewNGrid  = round(IncFact*(REAL)CurrNGrid);
+ else
+     NewNGrid  = floor(IncFact*(REAL)CurrNGrid);
+              
+ NewIncFact=(REAL)NewNGrid/(REAL)CurrNGrid;
+
+// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n", 
+//                 CurrNGrid, NewNGrid,NewRedFact);
+
+ CheckIncFact(IncFact, NewIncFact, CurrNGrid, NewNGrid);
+    
+ *pNewNGrid    = NewNGrid;
+ *pNewIncFact = NewIncFact;    
+}
+
+/*---------------------------------------------------------------------------*/
+/*Calculate the Reduction factors backwards and determine the first RedFact  */
+REAL FirstRF2USC(INT NDim, INT InitNGrid)
+{
+ REAL IncFact; 		//Incrementing factor.
+ INT  NIterIF;		//Number of iterations using increasing factor.
+ INT  CurrNGrid;	//Current number of grid parts.
+ INT  PrevNGrid;	//Previous number of grid parts.
+ INT  NewNGrid; 	//Number of Grids for the new Width.
+ REAL NewIncFact; 	//IncFact to get NewNGrid from CurrNGrid.
+ 
+ IncFact   = (REAL)NDim / ((REAL) NDim - 1.0);
+ CurrNGrid = PrevNGrid= NDim-1; //Number of grid parts in a final simplex.
+ NIterIF   = 1;
+ 
+ while (CurrNGrid<InitNGrid)
+       {
+        NextIF (CurrNGrid, IncFact, &NewNGrid, &NewIncFact);
+        //fprintf(stderr,"NIterIF=%3d, CurrNGrid =%3d, NewIncFact=%f.\n",
+        //        NIterIF,CurrNGrid,NewIncFact);
+        NIterIF++;
+        PrevNGrid=CurrNGrid;
+        CurrNGrid=NewNGrid;               
+       }  
+ //fprintf(stderr,"------------------------------------------------\n");          
+ //fprintf(stderr,"NIterIF=%3d, CurrNGrid =%3d.\n\n\n",NIterIF-1,CurrNGrid); 
+ 
+ fprintf(stderr,"Initial Reduction Factor = %d /%d.\n", PrevNGrid, InitNGrid);
+ return (REAL)PrevNGrid/(REAL)InitNGrid;       
+}
+
+
+/*---------------------------------------------------------------------------*/
+void CheckRedFact(REAL RedFact, REAL NewRedFact, INT CurrNGrid, INT NewNGrid)
+{
+ if (LT(NewRedFact, RedFact))
+    {
+     fprintf(stderr," NewRedFact=%f < RedFact=%f.\n",
+             NewRedFact, RedFact);
+             exit(1);
+    }
+
+ if (GE(NewRedFact, 1.0))
+    {
+     fprintf(stderr,"RedFact           = %f \n",   RedFact);
+     fprintf(stderr,"RedFact*CurrNGrid = %1.21f\n",RedFact*CurrNGrid);
+     fprintf(stderr,"NewNGrid           = %d \n"  ,NewNGrid);
+     fprintf(stderr,"NewRedFact>= 1.0  = %f\n"    ,NewRedFact);
+     exit(1);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+/*Next reduction factor*/
+void NextRF (PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact, 
+             PINT pNewNGrid, PREAL pNewRedFact)
+{
+ /*Requires:
+ pCDS = A regular simplex.
+ GridSize,
+ RedFact=minimum reduction RedFact
+ GridSize: 1/g */
+ /*returns
+ pNewNGrid: number of grids in the new width  
+ NewRedFact: RedFact used to get the new width. */
+ 
+ INT  CurrNGrid; 	//Current number of grids in the width
+ INT  NewNGrid; 	//Number of Grids for the new Width
+ REAL NewRedFact;	//New Reduction Factor.
+ 
+ //Current number of grids.
+ if (EQ(pCDS->L/GridSize,round(pCDS->L/GridSize)))
+     CurrNGrid  = round(pCDS->L/GridSize);
+ else
+     CurrNGrid  = ceil(pCDS->L/GridSize);
+ 
+ //New number of grids
+ if (EQ(RedFact*(REAL)CurrNGrid,round(RedFact*(REAL)CurrNGrid)))
+     NewNGrid  = round(RedFact*(REAL)CurrNGrid);
+ else
+     NewNGrid  = ceil(RedFact*(REAL)CurrNGrid);
+ 
+ //New reduction facot             
+ NewRedFact=(REAL)NewNGrid/(REAL)CurrNGrid;
+
+// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n", 
+//                 CurrNGrid, NewNGrid, NewRedFact);
+
+ CheckRedFact(RedFact, NewRedFact, CurrNGrid, NewNGrid);
+    
+ *pNewNGrid    = NewNGrid;
+ *pNewRedFact = NewRedFact;    
 }
 
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                             PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat,
-                            PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
+                            PULINT pCountersCDS, REAL RedFact, UCHAR Draw,
                             INT NDim, INT WWidth,
                             PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                            REAL FinalWidth, REAL GridSize, REAL IniLXiRatio,
-                            BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints)
+                            REAL FinalWidth, REAL GridSize, INT InitNGrid, 
+                            REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv, 
+                            PBTV pbtvGridPoints)
 {
- REAL NewFraction;
- INT NGNSE; //Number of Grids for the New Simplex Edge
+ INT  NewNGrid;		//Number of Grids for the new Width
+ REAL NewRedFact;	//New reduction factor
 
  switch (Divide)
         {
          case 1:  //2USC Grid
-              if ( EQ( (Fraction*pCDS_O->L)/GridSize,
-                       round((Fraction*pCDS_O->L)/GridSize)
-                     )
-                 )
-                  NGNSE  = round((Fraction*pCDS_O->L)/GridSize);
+/*
+              if (pCDS_O->NSimplex==1) //The same result.
+                 NewRedFact=FirstRF2USC(NDim,InitNGrid); 
               else
-                  NGNSE = ceil((Fraction*pCDS_O->L)/GridSize);
-              NewFraction=((REAL)NGNSE*GridSize)/pCDS_O->L;
-
-              //fprintf(stderr,"Size simplex=%f.\n",pCDS_O->L);
-              //fprintf(stderr,"NGNSE=%d, NewFraction=%f.\n\n", NGNSE,NewFraction);
-
-              if (LT(NewFraction, Fraction))
-                 {
-                  fprintf(stderr," NewFraction=%f < Fraction=%f.\n",
-                                   NewFraction, Fraction);
-                  exit(1);
-                 }
-
-              if (GE(NewFraction, 1.0))
-                 {
-                  PrintCDSimplex(pCDS_O,NDim, ppVCoor_T, ppCDSToVMat);
-                  fprintf(stderr,"Fraction   =%f \n",Fraction);
-                  fprintf(stderr,"(Fraction*pCDS_O->L)/GridSize = %1.21f\n",
-                                  (Fraction*pCDS_O->L)/GridSize);
-                  fprintf(stderr,"NGNSE      =%d, \n", NGNSE);
-                  fprintf(stderr,"NewFraction=%f >= 1.0\n",NewFraction);
-
-                  fprintf(stderr,"GridSize   =alpha_f=%1.21f, \n", GridSize);
-                  fprintf(stderr,"FinalWidth    =%1.21f, \n", FinalWidth);
-                  exit(1);
-                 }
+*/
+                 NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);    
 
               pCDS_O = TwoUSC (pCDS_O, ppVCoor_O,
                                ppVCoor_T, pCentreT, ppCDSToVMat,
-                               pCountersCDS, NewFraction, Draw,
+                               pCountersCDS, NewRedFact, Draw,
                                NDim, NDim, WWidth, plcds, pbtCDSEnd,
                                FinalWidth, NoStoreFinalS,pbtv,pbtvGridPoints);
               break;
          case 2:  //2NUSC Grid
-              if (EQ(Fraction*pCDS_O->L, GridSize))
-                 NGNSE=1;
+              if (EQ(RedFact*pCDS_O->L, GridSize))
+                 NewNGrid=1;
               else
-                 {
-                  if ( EQ(      (Fraction*pCDS_O->L)/GridSize,
-                           round((Fraction*pCDS_O->L)/GridSize)
-                         )
-                     )
-                      NGNSE  = round((Fraction*pCDS_O->L)/GridSize);
-                  else
-                     NGNSE = ceil((Fraction*pCDS_O->L)/GridSize);
-                 }
-
-              NewFraction=((REAL)NGNSE*GridSize)/pCDS_O->L;
-
-              //fprintf(stderr,"NGNSE=%d, NewFraction=%f.\n", NGNSE,NewFraction);
-
-              if (LT(NewFraction, Fraction))
-                 {
-                  fprintf(stderr," NewFraction=%f < Fraction=%f.\n",
-                                   NewFraction, Fraction);
-                  exit(1);
-                 }
-
-              if (GE(NewFraction, 1.0))
-                 {
-                  PrintCDSimplex(pCDS_O,NDim,ppVCoor_T, ppCDSToVMat);
-                  fprintf(stderr,"Fraction=%f \n",Fraction);
-                  fprintf(stderr,"(Fraction*pCDS_O->L)/GridSize=%1.20f, \n",
-                                  (Fraction*pCDS_O->L)/GridSize);
-                  fprintf(stderr,"NGNSE=%d, \n", NGNSE);
-                  fprintf(stderr,"NewFraction=%f >= 1.0\n",NewFraction);
-                  fprintf(stderr,"GridSize=alhpa_f=%1.21f, \n", GridSize);
-                  fprintf(stderr,"FinalWidth=%1.21f, \n", FinalWidth);
-
-
-                  exit(1);
-                 }
+                 NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);
 
               pCDS_O = TwoNUSC (pCDS_O, ppVCoor_O,
                                 ppVCoor_T, pCentreT, ppCDSToVMat,
-                                pCountersCDS, NewFraction, Draw,
+                                pCountersCDS, NewRedFact, Draw,
                                 NDim, WWidth, plcds, pbtCDSEnd,
                                 FinalWidth, IniLXiRatio,
-                                True, GridSize, NoStoreFinalS,pbtv,pbtvGridPoints);
+                                True, GridSize, NoStoreFinalS,pbtv,
+                                pbtvGridPoints);
               break;
 
          default:

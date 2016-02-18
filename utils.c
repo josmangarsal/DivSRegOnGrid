@@ -156,7 +156,7 @@ BOOL PointInX123 (PREAL pX, INT NDim)
     return True;
  
  for (i=3;i<NDim;i++) //Las últimas coordenadas deben ser cero
-     if (pX[i] != 0.0)
+     if (!EQ(pX[i],0.0))
         {
          VInX123=False;
          break;

@@ -69,7 +69,8 @@ VOID       DrawCDSimplex       (PCDSIMPLEX pCDS, PPREAL ppVCoorT,
 			                          PPREAL ppCDSToVMat,
                                 UCHAR Draw, INT NDim, INT WWidth, PCHAR Color);
 VOID       DelCDSimplex        (PCDSIMPLEX pCDS, UCHAR Draw);
-VOID       DrawGridPoints      (PQueue gridPoints, INT NDim, INT WWidth, PCHAR Color);
+VOID       DrawGridPoints      (PQueue gridPoints, INT NDim, INT WWidth, 
+                                PCHAR Color);
 
 #endif /*__CDSIMPLEX__*/
 /*---------------------------------------------------------------------------*/

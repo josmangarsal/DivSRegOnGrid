@@ -23,11 +23,12 @@
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O,
                            PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL pCentreT,
-		                       PPREAL ppCDSToVMat,PULINT pCountersCDS,
+		           PPREAL ppCDSToVMat,PULINT pCountersCDS,
                            REAL Fraction, UCHAR Draw,
                            INT NDim, INT WWidth,
                            PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                           REAL Epsilon, REAL GridSize, REAL IniLXiRatio,
+                           REAL Epsilon, REAL GridSize, INT InitNGrid, 
+                           REAL IniLXiRatio,
                            BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints);
 #endif /*__DIVIDE__*/
 /*---------------------------------------------------------------------------*/

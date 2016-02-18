@@ -167,10 +167,11 @@ VOID StoreVertexCDSimplex(PCDSIMPLEX pCDS,PPREAL ppVCoorT, PPREAL ppCDSToVMat,
 BOOL CDSInX123(PPREAL ppVCoorT, PINT pWhich, INT NDim)
 {
  INT i;
- INT NPointsIn3D=3;
+ INT NPointsIn3D;
  
  if (NDim==3)
     {
+     NPointsIn3D=3;
      for (i=0;i<NDim;i++)
          pWhich[i]=i;
      return True;
@@ -240,12 +241,13 @@ VOID DrawCDSimplex(PCDSIMPLEX pCDS, PPREAL ppVCoorT, PPREAL ppCDSToVMat,
 /*---------------------------------------------------------------------------*/
 VOID DelCDSimplex(PCDSIMPLEX pCDS, UCHAR Draw)
 {
- //Se puede pedir que lo borre anque no se haya pintado.
  printf("DelLineTriangle\n");
  printf("%llu\n",pCDS->NSimplex);
+ 
  if (Draw==2)
     puts("Wait");
- fflush(stdout);
+ 
+ fflush(stdout);    
 }
 
 /*---------------------------------------------------------------------------*/

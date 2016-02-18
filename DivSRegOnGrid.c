@@ -198,8 +198,9 @@ int main(int argc,  char *argv[])
  fprintf(stderr,"Init N. of grid parts    = %d.\n",InitNGrid);
  fprintf(stderr,"Grid Size                = %f.\n",GridSize);
  fprintf(stderr,"FinalWidth               = %f.\n",FinalWidth);
- fprintf(stderr,"Final N. of grid parts   = %d.\n\n",
+ fprintf(stderr,"Final N. of grid parts   = %d.\n",
          (INT)ceil(FinalWidth/GridSize));
+ fprintf(stderr,"Epsilon                  = %f.\n\n",Epsilon);
 
 
  //Graphical Output
@@ -237,10 +238,10 @@ int main(int argc,  char *argv[])
 
  //Output command on screen.
  if (ExistArg("-ep",argc,argv))
-     sprintf(Execution,"DivSRegOnGrid-1.3_-d_%d_-ep_%f_-Div_%d",
+     sprintf(Execution,"DivSRegOnGrid-1.4_-d_%d_-ep_%f_-Div_%d",
                         NDim,(REAL)atof(GetArg("-ep",argc,argv)),Divide);
  else
-     sprintf(Execution,"DivSRegOnGrid-1.3_-d_%d_-g_%d_-Div_%d",
+     sprintf(Execution,"DivSRegOnGrid-1.4_-d_%d_-g_%d_-Div_%d",
                         NDim,(INT)atoi(GetArg("-g",argc,argv)),Divide);
  fprintf(stderr,"%s\n\n",Execution);
 
@@ -268,10 +269,6 @@ int main(int argc,  char *argv[])
     Next(gridPoints);
    }
  while(End(gridPoints) == 0);
-
- //PrintBTV(pbtvGridPoints, NDim);
-
- fprintf(stderr,"N. Grid Points=%d\n", numberGridPoints(ceil(1/Epsilon)+1, NDim));
 
  // Draw GRID POINTS
  if (Draw)
@@ -377,21 +374,14 @@ int main(int argc,  char *argv[])
      fprintf(stderr,"Number of evaluated simplices  = %lu.\n",CountersCDS[1]);
      fprintf(stderr,"NVertices                      = %d.\n", pbtv->MaxNElem);
 
-     fprintf(stderr,"\nGridPoints=%d/%d(%d)[generated/formula(visited)]\n",
+     fprintf(stderr, "\nEXIT: -d %d -g %d -ep %f -Div %d -Grid %d -Formula %d -Visited %d -Vertices %d -Simplices %lu\n",
+             NDim, InitNGrid, Epsilon, Divide,
              Count(pbtvGridPoints->pFirstBTVNode, NDim),
              numberGridPoints(ceil(1/Epsilon)+1,NDim),
-             CountVisited(pbtvGridPoints->pFirstBTVNode, NDim));
-     //PrintBTV(pbtvGridPoints, NDim);
-
-     fprintf(stderr, "\nEXIT:%d,%f,%d,%d,%d,%d\n",
-             NDim, Epsilon, Divide,
-             Count(pbtvGridPoints->pFirstBTVNode, NDim),
              CountVisited(pbtvGridPoints->pFirstBTVNode, NDim),
-             pbtv->MaxNElem);
+             pbtv->MaxNElem,
+             CountersCDS[1]);
     }
-
-
- fprintf(stderr,"Epsilon=%f\n",Epsilon);
 
  if (!NoStoreFinalS)
     pbtCDSEnd = FreeBTCDS (pbtCDSEnd);

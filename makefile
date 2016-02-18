@@ -7,10 +7,10 @@ default : DivSRegOnGrid
 
 #-------------------------------------------------------------------------------
 DivSRegOnGrid : makefile DivSRegOnGrid.c argshand.o \
-	getmem.o utils.o Queue.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
+	getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
 	divide.o btCDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -o DivSRegOnGrid \
-	DivSRegOnGrid.c argshand.o getmem.o utils.o Queue.o gengridpoints.o btvertex.o \
+	DivSRegOnGrid.c argshand.o getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o \
 	CDSimplex.o listCDSimplex.o divide.o btCDSimplex.o -L/usr/lib64 -lm
 
 btCDSimplex.o : btCDSimplex.c btCDSimplex.h listCDSimplex.o CDSimplex.o
@@ -36,6 +36,9 @@ gengridpoints.o : gengridpoints.c gengridpoints.h
 
 Queue.o : Queue.c Queue.h
 	$(CC) $(DEBUG) $(FLAGS) -c -o Queue.o Queue.c
+
+Map.o : Map.c Map.h
+	$(CC) $(DEBUG) $(FLAGS) -c -o Map.o Map.c
 
 getmem.o : getmem.c getmem.h
 	$(CC) $(DEBUG) $(FLAGS) -c -o getmem.o getmem.c

@@ -43,6 +43,7 @@ struct typecdsimplex
   BOOL		Up;
   BOOL		Overlap;
   UCHAR   DivPhase;
+  INT     Level;
 };
 
 typedef struct 	typecdsimplex 	CDSIMPLEX;
@@ -55,7 +56,7 @@ VOID       RegToV              (INT NDim, PREAL pCentre, REAL R, BOOL Up,
                                 PPREAL ppVCoor, PPREAL ppCDSToVMat);
 PCDSIMPLEX NewCDSimplex        (INT NDim, PREAL pCentre, REAL L, REAL R,
                                 BOOL Up, BOOL Overlap, ULLINT NSimplex,
-                                UCHAR DivPhase);
+                                UCHAR DivPhase, INT Level);
 VOID       UpdateCDSimplex     (PCDSIMPLEX pCDS, INT NDim, PREAL pCentre,
                                 REAL L, REAL R, BOOL Up, BOOL Overlap,
                                 ULLINT NSimplex, UCHAR DivPhase);
@@ -69,7 +70,7 @@ VOID       DrawCDSimplex       (PCDSIMPLEX pCDS, PPREAL ppVCoorT,
 			                          PPREAL ppCDSToVMat,
                                 UCHAR Draw, INT NDim, INT WWidth, PCHAR Color);
 VOID       DelCDSimplex        (PCDSIMPLEX pCDS, UCHAR Draw);
-VOID       DrawGridPoints      (PQueue gridPoints, INT NDim, INT WWidth, 
+VOID       DrawGridPoints      (PQueue gridPoints, INT NDim, INT WWidth,
                                 PCHAR Color);
 
 #endif /*__CDSIMPLEX__*/

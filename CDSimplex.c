@@ -68,7 +68,7 @@ VOID RegToV (INT NDim, PREAL pCentre, REAL R, BOOL Up,
 
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX NewCDSimplex (INT NDim, PREAL pCentre, REAL L, REAL R, BOOL Up,
-                         BOOL Overlap, ULLINT NSimplex, UCHAR DivPhase)
+                         BOOL Overlap, ULLINT NSimplex, UCHAR DivPhase, INT Level)
 {
 
  PCDSIMPLEX pCDS;
@@ -82,6 +82,7 @@ PCDSIMPLEX NewCDSimplex (INT NDim, PREAL pCentre, REAL L, REAL R, BOOL Up,
  pCDS->Up=Up;
  pCDS->Overlap=Overlap;
  pCDS->DivPhase=DivPhase;
+ pCDS->Level=Level;
 
  return pCDS;
 }
@@ -168,22 +169,22 @@ BOOL CDSInX123(PPREAL ppVCoorT, PINT pWhich, INT NDim)
 {
  INT i;
  INT NPointsIn3D;
- 
+
  if (NDim==3)
     {
      NPointsIn3D=3;
      for (i=0;i<NDim;i++)
          pWhich[i]=i;
      return True;
-    }     
+    }
 
- //Only simplices with 3 vertices at x1,x2,x3 neq 0 are drawn. 
+ //Only simplices with 3 vertices at x1,x2,x3 neq 0 are drawn.
  if (NDim > 3)
     {
      NPointsIn3D=0;
-     for (i=0;i<NDim;i++) //Para cada vertice   
+     for (i=0;i<NDim;i++) //Para cada vertice
          if (PointInX123(ppVCoorT[i],NDim))
-            { 
+            {
              pWhich[NPointsIn3D]=i;
              NPointsIn3D++;
             }
@@ -192,7 +193,7 @@ BOOL CDSInX123(PPREAL ppVCoorT, PINT pWhich, INT NDim)
  if (NPointsIn3D>3)
     {
      fprintf(stderr,"CDSInX123: NPointsIn3D=%d.\n",NPointsIn3D);
-     
+
      for (i=0;i<NDim;i++)
          {
           fprintf(stderr,"v[%d]=\n",i);
@@ -201,11 +202,12 @@ BOOL CDSInX123(PPREAL ppVCoorT, PINT pWhich, INT NDim)
 
      fputs("\n",stderr);
      exit(1);
-    } 
- if (NPointsIn3D==3)    
+    }
+ if (NPointsIn3D==3)
     return True;
  else
-    return False;      
+    return False;
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -219,7 +221,7 @@ VOID DrawCDSimplex(PCDSIMPLEX pCDS, PPREAL ppVCoorT, PPREAL ppCDSToVMat,
 
  //Get the Simplex's V coordinates
  RegToV (NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
- 
+
  if (CDSInX123(ppVCoorT, pWhich, NDim))
     {
      printf("DrawLineTriangle\n");
@@ -243,26 +245,26 @@ VOID DelCDSimplex(PCDSIMPLEX pCDS, UCHAR Draw)
 {
  printf("DelLineTriangle\n");
  printf("%llu\n",pCDS->NSimplex);
- 
+
  if (Draw==2)
     puts("Wait");
- 
- fflush(stdout);    
+
+ fflush(stdout);
 }
 
 /*---------------------------------------------------------------------------*/
 VOID DrawGridPoints(PQueue gridPoints, INT NDim, INT WWidth, PCHAR Color)
 {
  ULLINT p = 1;
- 
+
  while (Front(gridPoints) != NULL)
        {
         double* point = Front(gridPoints);
-        
+
         if (PointInX123(point,NDim))
            {
             printf("DrawPoint\n");
- 
+
             printf("%f\n",XInWindow(point,WWidth));
             printf("%f\n",YInWindow(point,WWidth));
 
@@ -271,7 +273,7 @@ VOID DrawGridPoints(PQueue gridPoints, INT NDim, INT WWidth, PCHAR Color)
 
             // No libero porque son los mismo punteros que tiene el arbol
             //free((void*)point);
-           } 
+           }
         Pop(gridPoints);
         p++;
        }

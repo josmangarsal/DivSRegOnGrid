@@ -63,7 +63,7 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                  pCentreT[k]=pCDS_O->pCentre[k]+(1.0-RedFact)*pCDS_O->R/NDim;
              }
         if (Up)
-	   pCentreT[j]+=pCDS_O->R*(1.0-RedFact);
+	         pCentreT[j]+=pCDS_O->R*(1.0-RedFact);
         else
            pCentreT[j]-=pCDS_O->R*(1.0-RedFact);
 
@@ -75,7 +75,7 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
       else
          pCDS_T= NewCDSimplex(NDim, pCentreT, RedFact*pCDS_O->L,
                               RedFact*pCDS_O->R, Up, True,
-                              NSimplex, DivPhase);
+                              NSimplex, DivPhase, pCDS_O->Level+1);
 
      // PrintCDSimplex(pCDS_T,NDim);
      // PrintMR(stderr,ppVCoor_T,NDim,NDim);
@@ -145,102 +145,112 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                     PLISTCDS plcds, PBTCDS pbtCDSEnd,
                     REAL FinalWidth, REAL IniLXiRatio,
                     BOOL OnGrid, REAL GridSize, BOOL NoStoreFinalS,
-                    PBTV pbtv, PBTV pbtvGridPoints)
+                    PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC)
 {
- REAL UpDownRatio;
- PCDSIMPLEX pCDS_T;
- BOOL Up=True;
- ULLINT NSimplex;
- BOOL Add; 		//Final simplex is added to the btCDS.
- INT NSons;
- //INT i,j;
+  REAL UpDownRatio;
+  PCDSIMPLEX pCDS_T;
+  BOOL Up=True;
+  ULLINT NSimplex;
+  BOOL Add; 		//Final simplex is added to the btCDS.
+  INT NSons;
+  //INT i,j;
 
- if (pCDS_O->Up)
+  if (pCDS_O->Up)
     Up=False;
 
- //First the smaller and centered one. 2USC free the Original Simplex.
- NSons=NDim+1;
- NSimplex=pCDS_O->NSimplex*NSons+NSons;
+  //First the smaller and centered one. 2USC free the Original Simplex.
+  NSons=NDim+1;
+  NSimplex=pCDS_O->NSimplex*NSons+NSons;
 
+  BOOL only2usc = True;
 
- if (LT ( RedFact, (REAL)(NDim-1)/(REAL) NDim) )
+  if (LT ( RedFact, (REAL)(NDim-1)/(REAL) NDim) )
+  {
+    only2usc = False;
+
+    UpDownRatio=(NDim*(1.0-RedFact)-1.0);
+    pCDS_T= NewCDSimplex(NDim, pCDS_O->pCentre,UpDownRatio*pCDS_O->L,
+                        UpDownRatio*pCDS_O->R, Up, False,
+                        NSimplex, pCDS_O->DivPhase, pCDS_O->Level+1);
+
+    pCountersCDS[0]++; //Number of Generated
+    pCountersCDS[1]++; //Number of Evaluated
+
+    //Store Vertices
+    StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim,pbtvGridPoints);
+
+    if (LE(pCDS_T->L,FinalWidth))
     {
-     UpDownRatio=(NDim*(1.0-RedFact)-1.0);
-     pCDS_T= NewCDSimplex(NDim, pCDS_O->pCentre,UpDownRatio*pCDS_O->L,
-                	  UpDownRatio*pCDS_O->R, Up, False,
-                	  NSimplex, pCDS_O->DivPhase);
+      pCountersCDS[2]++; //Number of Finals
+      if (Draw)
+        DrawCDSimplex(pCDS_T,ppVCoor_T,ppCDSToVMat,Draw,NDim,WWidth,"Yellow");
 
-    //Check on grid
-/*    if (OnGrid)
-       {
-        CDSToV (NDim, pCDS_T, ppVCoor_T, ppCDSToVMat);
-        for (i=0;i<NDim;i++)
-            for (j=0;j<NDim;j++)
-                 if ( !EQ (        ppVCoor_T[i][j]*IniLXiRatio/GridSize,
-                           round ( ppVCoor_T[i][j]*IniLXiRatio/GridSize )
-                          )
-                    )
-                    {
-                     fprintf(stderr,"2NUSC-Grid: center simplex not on grid.\n");
-                     PrintCDSimplex(pCDS_T,NDim);
-                     exit(1);
-                    }
-                 else
-                     fprintf(stderr,"2NUSC-Grid: center simplex on grid.\n");
-
-       }
-*/
-
-     pCountersCDS[0]++; //Number of Generated
-     pCountersCDS[1]++; //Number of Evaluated
-
-     //Store Vertices
-     StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim,
-                          pbtvGridPoints);
-
-     if (LE(pCDS_T->L,FinalWidth))
-	{
-	 pCountersCDS[2]++; //Number of Finals
-	 if (Draw)
-            DrawCDSimplex (pCDS_T,ppVCoor_T,ppCDSToVMat,
-                	   Draw,NDim,WWidth,"Yellow");
-
-	 if (!NoStoreFinalS)
-            {
-             //Add = 0 when there exist a final with the same center
-             InsertBTCDS(pbtCDSEnd, pCDS_T, NDim, &Add);
-             if (!Add)
-        	{
-        	 pCountersCDS[3]++;
-        	 if (Draw)
-                    DrawCDSimplex (pCDS_T,ppVCoor_T,ppCDSToVMat,
-                        	   Draw,NDim,WWidth,"Green");
-        	}
-             pCDS_T=NULL;
-            }
-         else
-            pCDS_T=FreeCDSimplex(pCDS_T); //NEW CHECKKKKK
-	 }
-     else
-	{
-	 if (Draw)
-            DrawCDSimplex (pCDS_T,ppVCoor_T,ppCDSToVMat,
-                	   Draw,NDim,WWidth,"Yellow");
-
-	 InsertListCDS(plcds, pCDS_T);
-	 pCDS_T=NULL;
-	}
+      if (!NoStoreFinalS)
+      {
+        //Add = 0 when there exist a final with the same center
+        InsertBTCDS(pbtCDSEnd, pCDS_T, NDim, &Add);
+        if (!Add)
+        {
+          pCountersCDS[3]++;
+          if (Draw)
+            DrawCDSimplex(pCDS_T,ppVCoor_T,ppCDSToVMat,Draw,NDim,WWidth,"Green");
+        }
+        pCDS_T=NULL;
+      }
+      else
+        pCDS_T=FreeCDSimplex(pCDS_T); //NEW CHECKKKKK
     }
+    else
+    {
+      if (Draw)
+        DrawCDSimplex(pCDS_T,ppVCoor_T,ppCDSToVMat,Draw,NDim,WWidth,"Yellow");
 
- pCDS_O= TwoUSC (pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat,
-                 pCountersCDS, RedFact, Draw, NDim, NSons, WWidth,
-                 plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv,
-                 pbtvGridPoints);
- return NULL;
+      InsertListCDS(plcds, pCDS_T);
+      pCDS_T=NULL;
+    }
+  }
+
+  // Simplex is in 1 0 0 ??
+  RegToV (NDim, pCDS_O->pCentre, pCDS_O->R, pCDS_O->Up, ppVCoor_T, ppCDSToVMat);
+
+  INT unos = 0;
+  INT ceros = 0;
+  INT i, j;
+
+  for (i = 0; i < NDim; i++){
+    unos = 0;
+    ceros = 0;
+  //  PrintVR(stderr,ppVCoor_T[i],NDim);
+    if(EQ(ppVCoor_T[i][0], 1))
+      unos++;
+    for (j = 1; j < NDim; j++){
+      if(EQ(ppVCoor_T[i][j], 0))
+        ceros++;
+    }
+  //  fprintf(stderr, "unos=%d ceros=%d dim=%d\n", unos, ceros, NDim);
+  //  fprintf(stderr, "\n");
+    if(unos == 1 && ceros == NDim-1){
+  //    fprintf(stderr, "OK\n");
+        break;
+    }
+  }
+
+  if(unos == 1 && ceros == NDim-1){
+  //  fprintf(stderr, "Dentro\n");
+    if(only2usc == True)
+      AddOne(mapUSC, pCDS_O->Level);
+    else
+      AddOne(mapNUSC, pCDS_O->Level);
+  }
+  // Level division control end
+
+  pCDS_O= TwoUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat,
+                pCountersCDS, RedFact, Draw, NDim, NSons, WWidth,
+                plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv,
+                pbtvGridPoints);
+
+  return NULL;
 }
-
-
-
 
 /*---------------------------------------------------------------------------*/
 void CheckIncFact(REAL IncFact, REAL NewIncFact, INT CurrNGrid, INT NewNGrid)
@@ -281,7 +291,7 @@ void NextIF (INT CurrNGrid, REAL IncFact,
  //New number of grids
   if ( EQ (IncFact*(REAL)CurrNGrid, round(IncFact*(REAL)CurrNGrid) ) )
      NewNGrid  = round(IncFact*(REAL)CurrNGrid);
- else
+  else
      NewNGrid  = floor(IncFact*(REAL)CurrNGrid);
 
  NewIncFact=(REAL)NewNGrid/(REAL)CurrNGrid;
@@ -397,7 +407,7 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                             PLISTCDS plcds, PBTCDS pbtCDSEnd,
                             REAL FinalWidth, REAL GridSize, INT InitNGrid,
                             REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv,
-                            PBTV pbtvGridPoints)
+                            PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC)
 {
  INT  NewNGrid;		//Number of Grids for the new Width
  REAL NewRedFact;	//New reduction factor
@@ -444,7 +454,7 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                                 NDim, WWidth, plcds, pbtCDSEnd,
                                 FinalWidth, IniLXiRatio,
                                 True, GridSize, NoStoreFinalS,pbtv,
-                                pbtvGridPoints);
+                                pbtvGridPoints, mapUSC, mapNUSC);
               break;
 
          default:

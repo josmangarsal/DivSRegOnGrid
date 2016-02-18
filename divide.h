@@ -20,6 +20,8 @@
 #ifndef __DIVIDE__
 #define __DIVIDE__
 
+#include "Map.h"
+
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O,
                            PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL pCentreT,
@@ -27,9 +29,9 @@ PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O,
                            REAL Fraction, UCHAR Draw,
                            INT NDim, INT WWidth,
                            PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                           REAL Epsilon, REAL GridSize, INT InitNGrid, 
+                           REAL Epsilon, REAL GridSize, INT InitNGrid,
                            REAL IniLXiRatio,
-                           BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints);
+                           BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC);
 #endif /*__DIVIDE__*/
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/

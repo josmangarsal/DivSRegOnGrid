@@ -30,6 +30,7 @@
 #include "divide.h"
 #include "gengridpoints.h"
 #include "Queue.h"
+#include "Map.h"
 
 /*----------------------------------------------------------------------------*/
 /*                               MAIN                                         */
@@ -238,17 +239,16 @@ int main(int argc,  char *argv[])
 
  //Output command on screen.
  if (ExistArg("-ep",argc,argv))
-     sprintf(Execution,"DivSRegOnGrid-1.4_-d_%d_-ep_%f_-Div_%d",
+     sprintf(Execution,"DivSRegOnGrid-1.5_-d_%d_-ep_%f_-Div_%d",
                         NDim,(REAL)atof(GetArg("-ep",argc,argv)),Divide);
  else
-     sprintf(Execution,"DivSRegOnGrid-1.4_-d_%d_-g_%d_-Div_%d",
+     sprintf(Execution,"DivSRegOnGrid-1.5_-d_%d_-g_%d_-Div_%d",
                         NDim,(INT)atoi(GetArg("-g",argc,argv)),Divide);
  fprintf(stderr,"%s\n\n",Execution);
 
 
 //-------------------------------------------------------------------------------
  c1=times(&t1);
-
 
  //Generate and store the grid points.------------------------------------------
  PQueue gridPoints = GenGrid(ceil(1/Epsilon)+1, NDim);
@@ -275,7 +275,6 @@ int main(int argc,  char *argv[])
     DrawGridPoints(gridPoints, NDim, WWidth, "Yellow");
 
  FreeQueue(gridPoints);
-
 
  //Get memory for temporal matrices and vectors---------------------------------
  ppVCoorT1 = (PPREAL) GetMem2D((SIZE)NDim,(SIZE)NDim,(SIZE)sizeof(REAL),
@@ -314,7 +313,7 @@ int main(int argc,  char *argv[])
      pCentreT[i]=IniXi/(REAL)NDim;
 
  //Radious was not calculated. Let's set it as 1
- pCDS = NewCDSimplex(NDim,pCentreT,IniLength,1.0,True,False,1,0);
+ pCDS = NewCDSimplex(NDim,pCentreT,IniLength,1.0,True,False,1,0, 1);
 
  StoreVertexCDSimplex(pCDS, ppVCoorT1, ppCDSToVMat, pbtv, NDim, pbtvGridPoints);
 
@@ -336,6 +335,10 @@ int main(int argc,  char *argv[])
 
  InsertListCDS(plcds, pCDS);
 
+ // Type of USC
+ PMap mapUSC = InitMap();
+ PMap mapNUSC = InitMap();
+
  //Main loop--------------------------------------------------------------------
   while (plcds->NElem != 0)
   {
@@ -345,9 +348,8 @@ int main(int argc,  char *argv[])
                            ppCDSToVMat, CountersCDS,
                            Fraction, Draw, NDim, WWidth,
                            plcds, pbtCDSEnd, FinalWidth, GridSize, InitNGrid,
-                           IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints);
+                           IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints, mapUSC, mapNUSC);
   }
-
 
  c2=times(&t2);
 //-------------------------------------------------------------------------------
@@ -381,6 +383,14 @@ int main(int argc,  char *argv[])
              CountVisited(pbtvGridPoints->pFirstBTVNode, NDim),
              pbtv->MaxNElem,
              CountersCDS[1]);
+
+     fprintf(stderr, "2USC\n");
+     ShowMap(mapUSC);
+     fprintf(stderr, "2NUSC\n");
+     ShowMap(mapNUSC);
+
+     FreeMap(mapUSC);
+     FreeMap(mapNUSC);
     }
 
  if (!NoStoreFinalS)

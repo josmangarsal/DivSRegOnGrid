@@ -24,7 +24,7 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                    PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
                    INT NDim, INT NSons, INT WWidth,
                    PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                   REAL Epsilon,BOOL NoStoreFinalS,
+                   REAL FinalWidth,BOOL NoStoreFinalS,
 		               PBTV pbtv, PBTV pbtvGridPoints)
 {
  //ppVCoor_O and _T are Vertex matrix allocated in main for origin and target.
@@ -98,7 +98,7 @@ PCDSIMPLEX TwoUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
           //Store Vertices
 	  StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim, pbtvGridPoints);
 
-          if (LE(pCDS_T->L,Epsilon))
+          if (LE(pCDS_T->L,FinalWidth))
              {
               pCountersCDS[2]++; //Number of Finals
               if (Draw)
@@ -142,7 +142,7 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                     PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
                     INT NDim, INT WWidth,
                     PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                    REAL Epsilon, REAL IniLXiRatio,
+                    REAL FinalWidth, REAL IniLXiRatio,
                     BOOL OnGrid, REAL GridSize, BOOL NoStoreFinalS,
                     PBTV pbtv, PBTV pbtvGridPoints)
 {
@@ -196,7 +196,7 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
      //Store Vertices
      StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim, pbtvGridPoints);
 
-     if (LE(pCDS_T->L,Epsilon))
+     if (LE(pCDS_T->L,FinalWidth))
 	{
 	 pCountersCDS[2]++; //Number of Finals
 	 if (Draw)
@@ -232,129 +232,9 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
 
  pCDS_O= TwoUSC (pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat,
                  pCountersCDS, Fraction, Draw, NDim, NSons, WWidth,
-                 plcds, pbtCDSEnd, Epsilon, NoStoreFinalS, pbtv, pbtvGridPoints);
+                 plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv, pbtvGridPoints);
  return NULL;
 }
-/*---------------------------------------------------------------------------*/
-/*3USC.									     */
-PCDSIMPLEX ThreeUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
-                     PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat,
-                     PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
-                     INT NDim, INT WWidth,
-                     PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                     REAL Epsilon,BOOL NoStoreFinalS)
-
-{
- //ppVCoor_O and _T are Vertex matrix allocated in main for origin and target.
- //To reduce memory allocations
- //pCentreT the same
-
- INT k; /*Vertex Index*/
- INT i,j;
- INT NChild=NDim*(NDim+1)/2;
- INT Count=0;
- ULLINT NSimplex;
- BOOL IsCovered=False;
- PCDSIMPLEX pCDS_T;     //New Simplex
- UCHAR DivPhase;
- BOOL Add; 		//Final simplex is added to the btCDS.
-
-
- DivPhase=0;
-
-/* if (Draw)
-    {
-     DelCDSimplex(pCDS_O,1);
-     DrawCDSimplex (pCDS_O,ppVCoor_O,ppCDSToVMat,Draw,NDim,WWidth,"Green");
-     DelCDSimplex(pCDS_O,1);
-    }
-*/
-  // for all vertices we generate 1 new simplex but
- for (j=0;j<NDim;j++)
-     {   // also between this vertex and all previous ones another 1 new
-    for (i=0;i<=j;i++)
-       {
-        //Generate the new center
-        if (j==i)
-        {	// This is the center for the simplex at the j-th vertex
-			for (k=0;k<NDim;k++)
-				  pCentreT[k]=pCDS_O->pCentre[k]-(1.0-Fraction)*pCDS_O->R/NDim;
-			pCentreT[j]+=pCDS_O->R*(1.0-Fraction);
-		 }
-		 else
-		 {	// For vertices i and j the simplex in the middle of the edge is:
-		 	for (k=0;k<NDim;k++)	// the general part
-				  pCentreT[k]=pCDS_O->pCentre[k]-(1.0-Fraction)*pCDS_O->R/NDim;
-			// and the average of the two centers different part
-			pCentreT[j]+=pCDS_O->R*(1.0-Fraction)/2;
-			pCentreT[i]+=pCDS_O->R*(1.0-Fraction)/2;
-		 }
-	  Count++;
-      NSimplex=pCDS_O->NSimplex*NChild+Count;
-
-      if (IsCovered) //Previous simplex was covered. Let's use its memory.
-         UpdateCDSimplex (pCDS_T, NDim, pCentreT, Fraction*pCDS_O->L,
-                          Fraction*pCDS_O->R, True, True, NSimplex, DivPhase);
-      else
-         pCDS_T= NewCDSimplex(NDim, pCentreT, Fraction*pCDS_O->L,
-                              Fraction*pCDS_O->R, True, True,
-                              NSimplex, DivPhase);
-
-     // PrintCDSimplex(pCDS_T,NDim);
-     // PrintMR(stderr,ppVCoor_T,NDim,NDim);
-     // fprintf(stderr,"\n\n");
-
-
-      IsCovered= IsCDSCovered (plcds, pCDS_T, NDim);
-
-      if (IsCovered)
-         {
-          if (Draw)
-             {
-              DrawCDSimplex (pCDS_T,ppVCoor_T,ppCDSToVMat,Draw,NDim,WWidth,"Red");
-              DelCDSimplex (pCDS_T, Draw);
-             }
-         }
-      else
-         {
-          pCountersCDS[1]++; //Number of Evaluated
-          if (LE(pCDS_T->L,Epsilon))
-             {
-              pCountersCDS[2]++; //Number of Finals
-              if (Draw)
-                 DrawCDSimplex (pCDS_T,ppVCoor_T,ppCDSToVMat,
-                                Draw,NDim,WWidth,"Black");
-              if (!NoStoreFinalS)
-                 {
-                  InsertBTCDS(pbtCDSEnd, pCDS_T, NDim, &Add);
-                  if (!Add)
-                     pCountersCDS[3]++;
-                  pCDS_T=NULL;
-                 }
-             }
-          else
-             {
-              if (Draw)
-                 DrawCDSimplex (pCDS_T,ppVCoor_T,ppCDSToVMat,
-                                Draw,NDim,WWidth,"Black");
-              InsertListCDS(plcds, pCDS_T);
-              pCDS_T=NULL;
-             }
-         }
-       }
-     }
-
- pCountersCDS[0]+=NDim; //Number of generated
- if (IsCovered)
-    pCDS_T=FreeCDSimplex(pCDS_T);
-
- pCDS_O=FreeCDSimplex(pCDS_O);
-
- return NULL;
-}
-
-
-
 
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
@@ -362,7 +242,7 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                             PULINT pCountersCDS, REAL Fraction, UCHAR Draw,
                             INT NDim, INT WWidth,
                             PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                            REAL Epsilon, REAL GridSize, REAL IniLXiRatio,
+                            REAL FinalWidth, REAL GridSize, REAL IniLXiRatio,
                             BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints)
 {
  REAL NewFraction;
@@ -370,46 +250,8 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
 
  switch (Divide)
         {
-         case 1:
-              pCDS_O = TwoUSC (pCDS_O, ppVCoor_O,
-                               ppVCoor_T, pCentreT, ppCDSToVMat,
-                               pCountersCDS, Fraction, Draw,
-                               NDim, NDim,  WWidth, plcds, pbtCDSEnd,
-                               Epsilon, NoStoreFinalS, pbtv,pbtvGridPoints);
-              break;
-         case 2://2USC n-1/n + 2USC n/n+1
-              if (pCDS_O->DivPhase)
-                 NewFraction=((REAL)NDim-1.0)/(REAL)NDim;
-              else
-                 NewFraction=(REAL)NDim/((REAL)NDim+1.0);
-
-              pCDS_O = TwoUSC (pCDS_O, ppVCoor_O,
-                               ppVCoor_T, pCentreT, ppCDSToVMat,
-                               pCountersCDS, NewFraction, Draw,
-                               NDim, NDim, WWidth, plcds, pbtCDSEnd,
-                               Epsilon, NoStoreFinalS,pbtv,pbtvGridPoints);
-              break;
-
-        case 3://2NUSC
-              NewFraction=((REAL)NDim-2.0)/((REAL)NDim-1.0);
-              pCDS_O = TwoNUSC (pCDS_O, ppVCoor_O,
-                                ppVCoor_T, pCentreT, ppCDSToVMat,
-                                pCountersCDS, NewFraction, Draw,
-                                NDim, WWidth, plcds, pbtCDSEnd,
-                                Epsilon, IniLXiRatio,
-                                False, GridSize, NoStoreFinalS,pbtv,pbtvGridPoints);
-              break;
-
-        case 4://3USC
-              NewFraction=((REAL)NDim-1.0)/((REAL)NDim+1.0);
-              pCDS_O = ThreeUSC (pCDS_O, ppVCoor_O,
-                                 ppVCoor_T, pCentreT, ppCDSToVMat,
-                                 pCountersCDS, NewFraction, Draw,
-                                 NDim, WWidth, plcds, pbtCDSEnd,
-                                 Epsilon, NoStoreFinalS);
-              break;
-         case 5:  //2USC Grid
-              if ( EQ(      (Fraction*pCDS_O->L)/GridSize,
+         case 1:  //2USC Grid
+              if ( EQ( (Fraction*pCDS_O->L)/GridSize,
                        round((Fraction*pCDS_O->L)/GridSize)
                      )
                  )
@@ -438,7 +280,7 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                   fprintf(stderr,"NewFraction=%f >= 1.0\n",NewFraction);
 
                   fprintf(stderr,"GridSize   =alpha_f=%1.21f, \n", GridSize);
-                  fprintf(stderr,"Epsilon    =%1.21f, \n", Epsilon);
+                  fprintf(stderr,"FinalWidth    =%1.21f, \n", FinalWidth);
                   exit(1);
                  }
 
@@ -446,10 +288,9 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                                ppVCoor_T, pCentreT, ppCDSToVMat,
                                pCountersCDS, NewFraction, Draw,
                                NDim, NDim, WWidth, plcds, pbtCDSEnd,
-                               Epsilon, NoStoreFinalS,pbtv,pbtvGridPoints);
+                               FinalWidth, NoStoreFinalS,pbtv,pbtvGridPoints);
               break;
-         case 6:  //2NUSC Grid
-              Fraction=((REAL)NDim-2.0)/((REAL)NDim-1.0);
+         case 2:  //2NUSC Grid
               if (EQ(Fraction*pCDS_O->L, GridSize))
                  NGNSE=1;
               else
@@ -483,7 +324,7 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                   fprintf(stderr,"NGNSE=%d, \n", NGNSE);
                   fprintf(stderr,"NewFraction=%f >= 1.0\n",NewFraction);
                   fprintf(stderr,"GridSize=alhpa_f=%1.21f, \n", GridSize);
-                  fprintf(stderr,"Epsilon=%1.21f, \n", Epsilon);
+                  fprintf(stderr,"FinalWidth=%1.21f, \n", FinalWidth);
 
 
                   exit(1);
@@ -493,7 +334,7 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                                 ppVCoor_T, pCentreT, ppCDSToVMat,
                                 pCountersCDS, NewFraction, Draw,
                                 NDim, WWidth, plcds, pbtCDSEnd,
-                                Epsilon, IniLXiRatio,
+                                FinalWidth, IniLXiRatio,
                                 True, GridSize, NoStoreFinalS,pbtv,pbtvGridPoints);
               break;
 

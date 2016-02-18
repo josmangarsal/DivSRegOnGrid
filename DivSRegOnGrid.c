@@ -50,16 +50,12 @@ int main(int argc,  char *argv[])
 
  REAL 		IniLength; 	  //Initial Length
  REAL		IniLXiRatio;      // InitLenght / IniXi ratio.
- REAL 		Fraction;	  //Percentage of edge length for new edge
- REAL   	ParEpsilon;	  //Parameter Epsilon.
- REAL   	Epsilon;	  //Termination criterion w(S)<=Epsilon. 
- REAL           gepsilon;         //Epsilon for the grid points.
- REAL     	ParAlpha;	  //Parameter Alpha
- REAL     	Alpha;	  	  //User's grid 
- REAL     	GridSize;	  //Final grid size.
+ REAL 		Fraction;	  //Percentage of edge length for new edge 
+ REAL           Epsilon;          //Epsilon to determine the grid
+ REAL     	GridSize;	  //Final grid size. alpha in BnbGrid article.
+ REAL   	FinalWidth;	  //Termination criterion w(S)<=FinalWidth.
 
- INT      	PointsPerEdge;    //Grid points per edge.
- INT      	NFinalSPerEdge;   //Number of Final Simplices per edge.
+ INT      	FinalDivPerEdge;   //Number of Final Simplices per edge.
  INT		NDim;	 	  //Number of dimensions
  UCHAR		Draw;		  //Have we graphical output?
  INT 		WWidth;		  //Window width. graphical purposes.
@@ -80,8 +76,6 @@ int main(int argc,  char *argv[])
  struct tms     t1,t2;            //Timing
 
 
- 
-
  /* Check the input parameters.-- -----------------------------------------*/
  if (ExistArg("--help",argc,argv))
     ParametersError();
@@ -97,6 +91,7 @@ int main(int argc,  char *argv[])
           exit(1);
          }
     }
+ 
 
  //Initial coordinates.
  IniXi     = 1.0;
@@ -106,15 +101,65 @@ int main(int argc,  char *argv[])
  fprintf(stderr,"IniXi=%f, IniLength=%f, IniLXiRatio=%f.\n",
                  IniXi, IniLength, IniLXiRatio);
 
- //Epsilon of the grid.
- if (ExistArg("-gep",argc,argv))
+ //Division rule.
+ if (ExistArg("-Div",argc,argv))
     {
-     gepsilon = (REAL)atof(GetArg("-gep",argc,argv));
-     if (gepsilon  <= 0 || gepsilon >= IniLength)
+     Divide = (UCHAR) atoi(GetArg("-Div",argc,argv));
+     if (Divide <(UCHAR)1 || Divide > (UCHAR)2)
         {
-	 fprintf(stderr,"Epsilon not in (0,1). gep=%f\n",gepsilon);
+         fprintf(stderr,"-d in {1,2} Divide=%d\n", Divide);
+	 exit(1);
+        }
+    }
+ else
+    Divide=(UCHAR)1;
+
+ if (Divide==1)//2USC Grid
+     Fraction = ((REAL) NDim - 1.0) / (REAL)NDim;
+ 
+ if (Divide==2) //2NUSC Grid
+    {
+     Fraction=((REAL)NDim-2.0)/((REAL)NDim-1.0);
+     fprintf(stderr,"\n2NUSC not updated yet, Divide=%d.\n\n",Divide);
+     exit(1);
+    }
+
+
+ //Epsilon of the grid.
+ if (ExistArg("-ep",argc,argv))
+    {
+     Epsilon = (REAL)atof(GetArg("-ep",argc,argv));
+     if (Epsilon  <= 0 || Epsilon >= 1.0)
+        {
+	 fprintf(stderr,"Epsilon not in (0,1). -gep %f\n",Epsilon);
 	 exit(1);
 	}
+
+     GridSize=Epsilon*IniLength; //Fraction of w(S0)
+     FinalDivPerEdge = (INT)ceil(IniLength/GridSize); //G in BnBGrid article
+     if (Divide==1 && FinalDivPerEdge < 2*NDim - 3)//2USC
+        {
+         fprintf(stderr,"---------------------------------------------\n");
+         fprintf(stderr,"Warning: Final Div/edge=%d < 2d-3=%d.\n",
+                 FinalDivPerEdge, 2*NDim - 3);
+         FinalDivPerEdge = 2*NDim-3;
+         GridSize=IniLength/FinalDivPerEdge;
+         Epsilon=1.0/FinalDivPerEdge;
+         fprintf(stderr,"Using Epsilon=%f, GridSize=%f\n",
+                     Epsilon,GridSize);
+         fprintf(stderr,"---------------------------------------------\n"); 
+        }
+     GridSize = IniLength/(REAL)FinalDivPerEdge;      
+
+     if (Divide == 1)
+	FinalWidth = GridSize * (REAL)(NDim-1);
+     if (Divide == 2)
+        FinalWidth = GridSize * (REAL)(NDim-2);
+ 
+     fprintf(stderr,"Init Length              = %f.\n",IniLength);
+     fprintf(stderr,"Final Divisions Per Edge = %d.\n",FinalDivPerEdge);
+     fprintf(stderr,"Grid Size                = %f.\n",GridSize);
+     fprintf(stderr,"FinalWidth               = %f.\n\n",FinalWidth);
     }
  else
     {
@@ -122,108 +167,6 @@ int main(int argc,  char *argv[])
      ParametersError();
     }
 
- //Division rule.
- if (ExistArg("-Div",argc,argv))
-    {
-     Divide = (UCHAR) atoi(GetArg("-Div",argc,argv));
-     if (Divide <(UCHAR)1 || Divide > (UCHAR)6)
-        {
-         fprintf(stderr,"-d in {1,..,6} Divide=%d\n", Divide);
-	 exit(1);
-        }
-    }
- else
-    Divide=(UCHAR)5;
-
- //Alpha & Epsilon
- if ((!ExistArg("-ep",argc,argv) && !ExistArg("-a",argc,argv)) ||
-     ( ExistArg("-ep",argc,argv) &&  ExistArg("-a",argc,argv)))
-   {
-    fputs("Parameter -ep  xor -a are neccesary.\n",stderr);
-    ParametersError();
-   }
- else
-   {
-    //Alpha
-    if (ExistArg("-a",argc,argv))
-       {
-	ParAlpha = (REAL)atof(GetArg("-a",argc,argv));
-	if (ParAlpha <= 0.0 || ParAlpha >= 1.0)
-	   {
-            fprintf(stderr,"-a=%f must be 0.0 < -a < 1.0\n",ParAlpha);
-	    exit(1);
-	   }
-        //IMPORTANT
-        Alpha=ParAlpha*IniLength; //Fraction of w(S0)
-
-	PointsPerEdge = (INT)ceil(IniLength/Alpha);
-
-	GridSize = IniLength / (REAL) PointsPerEdge  ;
-
-	if (Divide == 3 || Divide == 6)
-	   Epsilon = GridSize * (REAL)(NDim-2);
-	else
-           {
-	    //Epsilon = GridSize * (REAL)(NDim-1);
-            Epsilon = GridSize * (REAL)(NDim-1)/(REAL)(NDim-2);
-            GridSize = Epsilon / (REAL)(NDim-1);
-           }
-        fprintf(stderr,"IniLength     = %f.\n",IniLength);
-        fprintf(stderr,"Alpha         = %f.\n",Alpha);
-	fprintf(stderr,"PointsPerEdge = %d.\n", PointsPerEdge);
-        fprintf(stderr,"GridSize      = %f.\n",GridSize);
-        fprintf(stderr,"Epsilon       = %f.\n\n",Epsilon);
-
-       }
-
-     //Epsilon
-     if (ExistArg("-ep",argc,argv))
-       {
-      	ParEpsilon = (REAL)atof(GetArg("-ep",argc,argv));
-	if ( ParEpsilon <= 0.0 || ParEpsilon >= 1.0 )
-	   {
-            fprintf(stderr,"-ep = %f must be 0.0< -ep < 1.0\n",ParEpsilon);
-	    exit(1);
-	   }
-        //IMPORTANT
-        Epsilon=ParEpsilon*IniLength; //Fraction os w(S0)
-	NFinalSPerEdge = (INT)ceil(IniLength/Epsilon);
-
-	if (Divide == 3 || Divide == 6)
-	   GridSize = IniLength / ( (REAL) NFinalSPerEdge * (REAL)(NDim-2) ) ;
-	else
-	   GridSize = IniLength / ( (REAL) NFinalSPerEdge * (REAL)(NDim-1) ) ;
-
-        fprintf(stderr,"IniLength      = %f.\n",IniLength);
-        fprintf(stderr,"Epsilon        = %f.\n",Epsilon);
-	fprintf(stderr,"NFinalSPerEdge = %d.\n",NFinalSPerEdge);
-        fprintf(stderr,"GridSize       = %f.\n\n",GridSize);
-
-       }
-   }
-
- //Differet fraction for -Div 1 
- if (ExistArg("-fr",argc,argv))
-    {
-     if (Divide!=1)
-        {
-         fprintf(stderr,"Fraction is used only with -div 1.\n");
-	 exit(1);
-        }
-     Fraction = (REAL) atof(GetArg("-fr",argc,argv));
-     if (Fraction < 0.0 || Fraction > 1.0)
-        {
-         fprintf(stderr,"Fraction must be in [0,1]\n");
-	 exit(1);
-        }
-     if (Fraction < ((REAL) NDim - 1.0) / (REAL)NDim )
-        {
-         fprintf(stderr,"Fraction must be > d-1/d for 2USC\n");
-	 exit(1);
-        }
-    }
- else
-     Fraction = ((REAL) NDim - 1.0) / (REAL)NDim;
 
  //Graphical Output
  if (ExistArg("-tcl",argc,argv))
@@ -267,12 +210,8 @@ int main(int argc,  char *argv[])
      OutStat = True;
 
 
- if (ExistArg("-ep",argc,argv))
-    sprintf(Execution,"DivSRegOnGrid-1.0_-d_%d_-gep_%f_-ep_%3.4f_-Div_%d",
-            NDim,gepsilon,ParEpsilon,Divide);
- else
-    sprintf(Execution,"DivSRegOnGrid-1.0_-d_%d_-gep_%f_-a_%3.4f_-Div_%d",
-            NDim,gepsilon,ParAlpha,Divide);
+ sprintf(Execution,"DivSRegOnGrid-1.1_-d_%d_-ep_%f_-Div_%d",
+                   NDim,Epsilon,Divide);
  fprintf(stderr,"%s\n\n",Execution);
 
 
@@ -281,7 +220,7 @@ int main(int argc,  char *argv[])
 
 
  //Generate and store the grid points.------------------------------------------
- PQueue gridPoints = GenGrid(ceil(1/gepsilon)+1, NDim);
+ PQueue gridPoints = GenGrid(ceil(1/Epsilon)+1, NDim);
 
  PBTV pbtvGridPoints = NULL; //AVL tree of grid points
  pbtvGridPoints = NewBTV (pbtvGridPoints);
@@ -302,7 +241,7 @@ int main(int argc,  char *argv[])
 
  //PrintBTV(pbtvGridPoints, NDim);
 
- fprintf(stderr,"N. Grid Points=%d\n", numberGridPoints(ceil(1/gepsilon)+1, NDim));
+ fprintf(stderr,"N. Grid Points=%d\n", numberGridPoints(ceil(1/Epsilon)+1, NDim));
 
  // Draw GRID POINTS
  if (Draw)
@@ -376,9 +315,9 @@ int main(int argc,  char *argv[])
     pCDS = ExtractListCDS (plcds);
 
     pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT,
-               ppCDSToVMat, CountersCDS,
+                           ppCDSToVMat, CountersCDS,
                            Fraction, Draw, NDim, WWidth,
-                           plcds, pbtCDSEnd, Epsilon, GridSize,
+                           plcds, pbtCDSEnd, FinalWidth, GridSize,
                            IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints);
   }
 
@@ -391,19 +330,14 @@ int main(int argc,  char *argv[])
      FOut = OpenFile(GetArg("-out",argc,argv),"a");
      //fprintf(FOut,"%f\t%ld\t%ld\n",
      //              Epsilon,CountersCDS[1],CountersCDS[0]-CountersCDS[1]);
-     if (ExistArg("-ep",argc,argv))
-        fprintf(FOut,"%f\t%d\n",Epsilon,pbtv->MaxNElem);
-     else
-        fprintf(FOut,"%f\t%d\n",Alpha,pbtv->MaxNElem);
+     fprintf(FOut,"%f\t%d\n",GridSize,pbtv->MaxNElem);
      fflush(FOut);
      fclose(FOut);
     }
  else
     {
      fprintf(stderr,"Time=%f.\n",(REAL)(c2-c1)/(REAL)sysconf(_SC_CLK_TCK));
-     if (ExistArg("-a",argc,argv))
-        fprintf(stderr,"Alpha=%f\t, Epsilon=%f\n",Alpha,Epsilon);
-     // fprintf(stderr,"Number of generated   simplices=%lu.\n",CountersCDS[0]);
+     fprintf(stderr,"Number of generated   simplices= %lu.\n",CountersCDS[0]);
      fprintf(stderr,"Number of covered simplices    = %lu.\n",
                      CountersCDS[0]-CountersCDS[1]);
      fprintf(stderr,"%% Cov./Eval.                   = %1.2f\n",
@@ -415,17 +349,19 @@ int main(int argc,  char *argv[])
 
      fprintf(stderr,"\nGridPoints=%d/%d(%d)[generated/formula(visited)]\n", 
              Count(pbtvGridPoints->pFirstBTVNode, NDim), 
-             numberGridPoints(ceil(1/gepsilon)+1,NDim), 
+             numberGridPoints(ceil(1/Epsilon)+1,NDim), 
              CountVisited(pbtvGridPoints->pFirstBTVNode, NDim));
      //PrintBTV(pbtvGridPoints, NDim);
 
      fprintf(stderr, "\nEXIT:%d,%f,%d,%d,%d,%d\n", 
-             NDim, gepsilon, Divide, 
+             NDim, Epsilon, Divide, 
              Count(pbtvGridPoints->pFirstBTVNode, NDim), 
              CountVisited(pbtvGridPoints->pFirstBTVNode, NDim), 
              pbtv->MaxNElem);
     }
 
+
+ fprintf(stderr,"Epsilon=%f\n",Epsilon);
 
  if (!NoStoreFinalS)
     pbtCDSEnd = FreeBTCDS (pbtCDSEnd);

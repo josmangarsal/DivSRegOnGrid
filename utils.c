@@ -32,24 +32,15 @@ void ParametersError()
  fputs("Options are:\n",stderr);
  fputs("\t[ --help To show this help]\n",stderr);
  fputs("\t[ -d            <int>: dimension, default=3]\n",stderr);
- fputs("\t[ -fr          <real>: fraction. Only in -Div 1, default: (d-1)/d\n",stderr);
- fputs("\t  -gep         <real>: Grid points generation size \n",stderr);
- fputs("\t  -ep          <real>: Min size(simplex)=\% Initial Size \n",stderr);
- fputs("\t  -a           <real>: Min size(simplex)=\% Initial Size \n",stderr);
+ fputs("\t  -ep          <real>: Accuracy. w(s)<=ep*w(S1) \n",stderr);
  fputs("\t[ -ns                : No store final simplices]\n",stderr);
  fputs("\t[ -out               : Generates statistic output file]\n",stderr);
  fputs("\t[ -Div         <int> : Division method]\n",stderr);
- fputs("\t                     :  1 -> 2USC\n",stderr);
- fputs("\t                     :  2 -> 2USC(n/n+1)+2USC((n-1)\n",stderr);
- fputs("\t                     :  3 -> 2NUSC\n",stderr);
- fputs("\t                     :  4 -> 3USC\n",stderr);
- fputs("\t                     : [5]-> 2USC Grid\n",stderr);
- fputs("\t                     :  6 -> 2NUSC Grid\n",stderr);
+ fputs("\t                     : [1]-> 2USC Grid\n",stderr);
+ fputs("\t                     :  2 -> 2NUSC Grid\n",stderr);
  fputs("\t[ -w            <int>: Graphic window width (400)]\n",stderr);
- fputs("\t[ -tcl          <int>: Graphical output with\"| escala.tcl\"]\n",
-       stderr);
- fputs("\t                       1: normal draw, 2:press key]\n\n",
-       stderr);       
+ fputs("\t[ -tcl          <int>: Graphical:\"| escala.tcl\"]\n",stderr);
+ fputs("\t                       1: normal draw, 2:press key]\n\n", stderr);       
 
  exit(0);
 }       

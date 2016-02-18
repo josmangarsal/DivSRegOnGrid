@@ -6,9 +6,9 @@ CC     = gcc
 default : DivSRegOnGrid
 
 #-------------------------------------------------------------------------------
-DivSRegOnGrid-1.0 : makefile DivSRegOnGrid.c argshand.o \
-	getmem.o utils.o Queue.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o divide.o \
-	btCDSimplex.o
+DivSRegOnGrid-1.1 : makefile DivSRegOnGrid.c argshand.o \
+	getmem.o utils.o Queue.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
+	divide.o btCDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -o DivSRegOnGrid \
 	DivSRegOnGrid.c argshand.o getmem.o utils.o Queue.o gengridpoints.o btvertex.o \
 	CDSimplex.o listCDSimplex.o divide.o btCDSimplex.o -L/usr/lib64 -lm

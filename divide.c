@@ -195,7 +195,7 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
      pCountersCDS[1]++; //Number of Evaluated
 
      //Store Vertices
-     StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim,  
+     StoreVertexCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, pbtv, NDim,
                           pbtvGridPoints);
 
      if (LE(pCDS_T->L,FinalWidth))
@@ -234,7 +234,7 @@ PCDSIMPLEX TwoNUSC (PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
 
  pCDS_O= TwoUSC (pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat,
                  pCountersCDS, RedFact, Draw, NDim, NSons, WWidth,
-                 plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv, 
+                 plcds, pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv,
                  pbtvGridPoints);
  return NULL;
 }
@@ -264,35 +264,35 @@ void CheckIncFact(REAL IncFact, REAL NewIncFact, INT CurrNGrid, INT NewNGrid)
 
 /*---------------------------------------------------------------------------*/
 /*Next increasing factor*/
-void NextIF (INT CurrNGrid, REAL IncFact, 
+void NextIF (INT CurrNGrid, REAL IncFact,
              PINT pNewNGrid, PREAL pNewIncFact)
 {
  /*Requires:
  CurrNGrid : Current number of grids in the width
  IncFact   : maximum increasing factor*/
  /*returns
- pNewNGrid : number of grids in the new width  
+ pNewNGrid : number of grids in the new width
  NewIncFact: Increasing factor used to get the new width. */
- 
+
  INT  NewNGrid; 	//Number of Grids for the new Width
  REAL NewIncFact;	//New Increasing Factor
- 
-     
- //New number of grids    
+
+
+ //New number of grids
   if ( EQ (IncFact*(REAL)CurrNGrid, round(IncFact*(REAL)CurrNGrid) ) )
      NewNGrid  = round(IncFact*(REAL)CurrNGrid);
  else
      NewNGrid  = floor(IncFact*(REAL)CurrNGrid);
-              
+
  NewIncFact=(REAL)NewNGrid/(REAL)CurrNGrid;
 
-// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n", 
+// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n",
 //                 CurrNGrid, NewNGrid,NewRedFact);
 
  CheckIncFact(IncFact, NewIncFact, CurrNGrid, NewNGrid);
-    
+
  *pNewNGrid    = NewNGrid;
- *pNewIncFact = NewIncFact;    
+ *pNewIncFact  = NewIncFact;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -305,11 +305,11 @@ REAL FirstRF2USC(INT NDim, INT InitNGrid)
  INT  PrevNGrid;	//Previous number of grid parts.
  INT  NewNGrid; 	//Number of Grids for the new Width.
  REAL NewIncFact; 	//IncFact to get NewNGrid from CurrNGrid.
- 
+
  IncFact   = (REAL)NDim / ((REAL) NDim - 1.0);
  CurrNGrid = PrevNGrid= NDim-1; //Number of grid parts in a final simplex.
  NIterIF   = 1;
- 
+
  while (CurrNGrid<InitNGrid)
        {
         NextIF (CurrNGrid, IncFact, &NewNGrid, &NewIncFact);
@@ -317,13 +317,13 @@ REAL FirstRF2USC(INT NDim, INT InitNGrid)
         //        NIterIF,CurrNGrid,NewIncFact);
         NIterIF++;
         PrevNGrid=CurrNGrid;
-        CurrNGrid=NewNGrid;               
-       }  
- //fprintf(stderr,"------------------------------------------------\n");          
- //fprintf(stderr,"NIterIF=%3d, CurrNGrid =%3d.\n\n\n",NIterIF-1,CurrNGrid); 
- 
+        CurrNGrid=NewNGrid;
+       }
+ //fprintf(stderr,"------------------------------------------------\n");
+ //fprintf(stderr,"NIterIF=%3d, CurrNGrid =%3d.\n\n\n",NIterIF-1,CurrNGrid);
+
  fprintf(stderr,"Initial Reduction Factor = %d /%d.\n", PrevNGrid, InitNGrid);
- return (REAL)PrevNGrid/(REAL)InitNGrid;       
+ return (REAL)PrevNGrid/(REAL)InitNGrid;
 }
 
 
@@ -349,7 +349,7 @@ void CheckRedFact(REAL RedFact, REAL NewRedFact, INT CurrNGrid, INT NewNGrid)
 
 /*---------------------------------------------------------------------------*/
 /*Next reduction factor*/
-void NextRF (PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact, 
+void NextRF (PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact,
              PINT pNewNGrid, PREAL pNewRedFact)
 {
  /*Requires:
@@ -358,35 +358,35 @@ void NextRF (PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact,
  RedFact=minimum reduction RedFact
  GridSize: 1/g */
  /*returns
- pNewNGrid: number of grids in the new width  
+ pNewNGrid: number of grids in the new width
  NewRedFact: RedFact used to get the new width. */
- 
+
  INT  CurrNGrid; 	//Current number of grids in the width
  INT  NewNGrid; 	//Number of Grids for the new Width
  REAL NewRedFact;	//New Reduction Factor.
- 
+
  //Current number of grids.
  if (EQ(pCDS->L/GridSize,round(pCDS->L/GridSize)))
      CurrNGrid  = round(pCDS->L/GridSize);
  else
      CurrNGrid  = ceil(pCDS->L/GridSize);
- 
+
  //New number of grids
  if (EQ(RedFact*(REAL)CurrNGrid,round(RedFact*(REAL)CurrNGrid)))
      NewNGrid  = round(RedFact*(REAL)CurrNGrid);
  else
      NewNGrid  = ceil(RedFact*(REAL)CurrNGrid);
- 
- //New reduction facot             
+
+ //New reduction facot
  NewRedFact=(REAL)NewNGrid/(REAL)CurrNGrid;
 
-// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n", 
+// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n",
 //                 CurrNGrid, NewNGrid, NewRedFact);
 
  CheckRedFact(RedFact, NewRedFact, CurrNGrid, NewNGrid);
-    
+
  *pNewNGrid    = NewNGrid;
- *pNewRedFact = NewRedFact;    
+ *pNewRedFact = NewRedFact;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -395,8 +395,8 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                             PULINT pCountersCDS, REAL RedFact, UCHAR Draw,
                             INT NDim, INT WWidth,
                             PLISTCDS plcds, PBTCDS pbtCDSEnd,
-                            REAL FinalWidth, REAL GridSize, INT InitNGrid, 
-                            REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv, 
+                            REAL FinalWidth, REAL GridSize, INT InitNGrid,
+                            REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv,
                             PBTV pbtvGridPoints)
 {
  INT  NewNGrid;		//Number of Grids for the new Width
@@ -407,10 +407,10 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
          case 1:  //2USC Grid
 /*
               if (pCDS_O->NSimplex==1) //The same result.
-                 NewRedFact=FirstRF2USC(NDim,InitNGrid); 
+                 NewRedFact=FirstRF2USC(NDim,InitNGrid);
               else
 */
-                 NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);    
+                 NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);
 
               pCDS_O = TwoUSC (pCDS_O, ppVCoor_O,
                                ppVCoor_T, pCentreT, ppCDSToVMat,
@@ -419,9 +419,23 @@ PCDSIMPLEX DivideCDSimplex (UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O,
                                FinalWidth, NoStoreFinalS,pbtv,pbtvGridPoints);
               break;
          case 2:  //2NUSC Grid
-              if (EQ(RedFact*pCDS_O->L, GridSize))
+              if (EQ(RedFact*pCDS_O->L, GridSize)){
                  NewNGrid=1;
-              else
+
+                 INT  CurrNGrid; 	//Current number of grids in the width
+
+                 //Current number of grids.
+                 if (EQ(pCDS_O->L/GridSize,round(pCDS_O->L/GridSize)))
+                     CurrNGrid  = round(pCDS_O->L/GridSize);
+                 else
+                     CurrNGrid  = ceil(pCDS_O->L/GridSize);
+
+                 //NewFraction=((REAL)NGNSE*GridSize)/pCDS_O->L;
+                 //New reduction factor
+                 NewRedFact=(REAL)NewNGrid/(REAL)CurrNGrid;
+
+                 CheckRedFact(RedFact, NewRedFact, CurrNGrid, NewNGrid);
+              }else
                  NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);
 
               pCDS_O = TwoNUSC (pCDS_O, ppVCoor_O,

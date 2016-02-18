@@ -101,6 +101,7 @@ void    PrintBinary     (FILE * FOut, UINT Binary, INT NDim);
 void    CopyVR 		(PREAL PD, PREAL PO, INT NDim);
 COMPARE CompareVR 	(PREAL VR1, PREAL VR2, INT NDim);
 REAL    RandomInt       (INT n);
+BOOL    PointInX123     (PREAL pX, INT NDim);
 REAL    XInWindow       (PREAL pX, INT WWidth);
 REAL    YInWindow       (PREAL pX, INT WWidth);
 VOID    DrawCircle      (PREAL pX, REAL Radius, INT NCircle, 

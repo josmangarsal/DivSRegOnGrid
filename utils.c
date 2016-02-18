@@ -33,6 +33,7 @@ void ParametersError()
  fputs("\t[ --help To show this help]\n",stderr);
  fputs("\t[ -d            <int>: dimension, default=3]\n",stderr);
  fputs("\t  -ep          <real>: Accuracy. w(s)<=ep*w(S1) \n",stderr);
+ fputs("\t  -g            <int>: ep=1/g (use -ep or -g).  \n",stderr);
  fputs("\t[ -ns                : No store final simplices]\n",stderr);
  fputs("\t[ -out               : Generates statistic output file]\n",stderr);
  fputs("\t[ -Div         <int> : Division method]\n",stderr);
@@ -142,6 +143,25 @@ COMPARE CompareVR (PREAL VR1, PREAL VR2, INT NDim)
 REAL RandomInt(INT n)
 {
  return ((int)(drand48()*(REAL)n));
+}
+
+/*---------------------------------------------------------------------------*/
+/*Returns if a point is on x1, x2, x3 face of a simplex*/
+BOOL PointInX123 (PREAL pX, INT NDim)
+{
+ INT i; 
+ BOOL VInX123=True;
+ 
+ if (NDim==3)
+    return True;
+ 
+ for (i=3;i<NDim;i++) //Las últimas coordenadas deben ser cero
+     if (pX[i] != 0.0)
+        {
+         VInX123=False;
+         break;
+        }    
+ return VInX123;
 }
 
 /*---------------------------------------------------------------------------*/

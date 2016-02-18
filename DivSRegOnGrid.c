@@ -55,7 +55,8 @@ int main(int argc,  char *argv[])
  REAL     	GridSize;	  //Final grid size. alpha in BnbGrid article.
  REAL   	FinalWidth;	  //Termination criterion w(S)<=FinalWidth.
 
- INT      	FinalDivPerEdge;   //Number of Final Simplices per edge.
+ INT      	FinalDivPerEdge=0;//Number of divisions per edge.
+ BOOL		FDPESmall=False;  //FinalDivPerEdge < 2*NDim-3 for -Div1
  INT		NDim;	 	  //Number of dimensions
  UCHAR		Draw;		  //Have we graphical output?
  INT 		WWidth;		  //Window width. graphical purposes.
@@ -114,16 +115,38 @@ int main(int argc,  char *argv[])
  else
     Divide=(UCHAR)1;
 
+
+ //Minimum fraction factor
  if (Divide==1)//2USC Grid
      Fraction = ((REAL) NDim - 1.0) / (REAL)NDim;
  
  if (Divide==2) //2NUSC Grid
     {
      Fraction=((REAL)NDim-2.0)/((REAL)NDim-1.0);
-     fprintf(stderr,"\n2NUSC not updated yet, Divide=%d.\n\n",Divide);
-     exit(1);
+     //fprintf(stderr,"\n2NUSC not updated yet, Divide=%d.\n\n",Divide);
+     //exit(1);
     }
 
+
+ //Accuracy
+ if ((!ExistArg("-ep",argc,argv) && !ExistArg("-g",argc,argv)) ||
+     ( ExistArg("-ep",argc,argv) &&  ExistArg("-g",argc,argv)))
+   {
+    fputs("Parameter -ep  xor -g are neccesary.\n",stderr);
+    ParametersError();
+   }
+
+ //Number of divisions of an edge.
+ if (ExistArg("-g",argc,argv))
+    {
+     FinalDivPerEdge = (INT)atoi(GetArg("-g",argc,argv));
+     Epsilon=1.0/FinalDivPerEdge;
+     if (FinalDivPerEdge  <= 1 )
+        {
+	 fprintf(stderr,"-g  %d  <=1.\n",FinalDivPerEdge);
+	 exit(1);
+	}
+    }
 
  //Epsilon of the grid.
  if (ExistArg("-ep",argc,argv))
@@ -134,65 +157,66 @@ int main(int argc,  char *argv[])
 	 fprintf(stderr,"Epsilon not in (0,1). -gep %f\n",Epsilon);
 	 exit(1);
 	}
-
-     GridSize=Epsilon*IniLength; //Fraction of w(S0)
-     FinalDivPerEdge = (INT)ceil(IniLength/GridSize); //G in BnBGrid article
-     if (Divide==1 && FinalDivPerEdge < 2*NDim - 3)//2USC
-        {
-         fprintf(stderr,"---------------------------------------------\n");
-         fprintf(stderr,"Warning: Final Div/edge=%d < 2d-3=%d.\n",
-                 FinalDivPerEdge, 2*NDim - 3);
-         FinalDivPerEdge = 2*NDim-3;
-         GridSize=IniLength/FinalDivPerEdge;
-         Epsilon=1.0/FinalDivPerEdge;
-         fprintf(stderr,"Using Epsilon=%f, GridSize=%f\n",
-                     Epsilon,GridSize);
-         fprintf(stderr,"---------------------------------------------\n"); 
-        }
-     GridSize = IniLength/(REAL)FinalDivPerEdge;      
-
-     if (Divide == 1)
-	FinalWidth = GridSize * (REAL)(NDim-1);
-     if (Divide == 2)
-        FinalWidth = GridSize * (REAL)(NDim-2);
- 
-     fprintf(stderr,"Init Length              = %f.\n",IniLength);
-     fprintf(stderr,"Final Divisions Per Edge = %d.\n",FinalDivPerEdge);
-     fprintf(stderr,"Grid Size                = %f.\n",GridSize);
-     fprintf(stderr,"FinalWidth               = %f.\n\n",FinalWidth);
     }
- else
+
+ //G in BnBGrid article
+ if (FinalDivPerEdge==0) //-g is not used. 
+     FinalDivPerEdge = (INT)ceil(1.0/Epsilon);
+   
+ //FinalDivPerEdge >=2NDim-3 for -Div 1  
+/*
+ if (Divide==1 && FinalDivPerEdge < 2*NDim-3)//2USC
     {
-     fputs("Parameter -gep is neccesary.\n",stderr);
-     ParametersError();
+     FDPESmall=True; 
+     FinalDivPerEdge = 2*NDim-3;
+    }     
+*/    
+    
+ //Calculate grid size. alpha in BnB article
+ GridSize=IniLength/FinalDivPerEdge;
+
+ if (FDPESmall)
+    { 
+     Epsilon=1.0/FinalDivPerEdge; //Update epsilon and grid.
+
+     fprintf(stderr,"---------------------------------------------\n");
+     fprintf(stderr,"Warning: Final Div/edge=%d < 2d-3=%d.\n",
+                     FinalDivPerEdge, 2*NDim-3);
+     fprintf(stderr,"Using Epsilon=%f, GridSize=%f\n",Epsilon,GridSize);
+     fprintf(stderr,"---------------------------------------------\n"); 
     }
 
+ //Stopping  criterion: w(S)<=FinalWidth.
+ if (Divide == 1)
+    FinalWidth = GridSize * (REAL)(NDim-1);
+ if (Divide == 2)
+    FinalWidth = GridSize * (REAL)(NDim-2);
+ 
 
+ //Just checking
+ fprintf(stderr,"Init Length              = %f.\n",IniLength);
+ fprintf(stderr,"Final Divisions Per Edge = %d.\n",FinalDivPerEdge);
+ fprintf(stderr,"Grid Size                = %f.\n",GridSize);
+ fprintf(stderr,"FinalWidth               = %f.\n\n",FinalWidth);
+    
+ 
  //Graphical Output
  if (ExistArg("-tcl",argc,argv))
     {
-     if (NDim!=3)
-        {
-   	 fprintf(stderr,"Only three dimensional simplices are drawn. Dim=%d\n",
-	         NDim);
-	 exit(1);
-        }
+     //Only x1,x2,x3 neq 0 are used.  
+     if (ExistArg("-w",argc,argv))
+        WWidth = atoi(GetArg("-w",argc,argv));
      else
-        {
-         if (ExistArg("-w",argc,argv))
-            WWidth = atoi(GetArg("-w",argc,argv));
-         else
-            WWidth = 400;
-	 Draw = (UCHAR) atoi(GetArg("-tcl",argc,argv));
-	 printf("%d\n",WWidth);
-	 printf("%d\n",WWidth);
-	 printf("0.0\n");
-	 printf("IniLength\n"); //TODO: use IniLength, modify XInWindow, YInWindow
-	 printf("0.0\n");
-	 printf("IniLength\n");
-	 printf("%2.4f\n",Epsilon);
-	 printf("%s\n","Regular partition");
-        }
+        WWidth = 400;
+     Draw = (UCHAR) atoi(GetArg("-tcl",argc,argv));
+     printf("%d\n",WWidth);
+     printf("%d\n",WWidth);
+     printf("0.0\n");
+     printf("IniLength\n"); //TODO: use IniLength, modify XInWindow, YInWindow
+     printf("0.0\n");
+     printf("IniLength\n");
+     printf("%2.4f\n",Epsilon);
+     printf("%s\n","Regular partition");   
     }
  else
     Draw=False;
@@ -209,9 +233,13 @@ int main(int argc,  char *argv[])
  else
      OutStat = True;
 
-
- sprintf(Execution,"DivSRegOnGrid-1.1_-d_%d_-ep_%f_-Div_%d",
-                   NDim,Epsilon,Divide);
+ //Output command on screen.
+ if (ExistArg("-ep",argc,argv))
+     sprintf(Execution,"DivSRegOnGrid-1.2_-d_%d_-ep_%f_-Div_%d",
+                        NDim,(REAL)atof(GetArg("-ep",argc,argv)),Divide);
+ else
+     sprintf(Execution,"DivSRegOnGrid-1.2_-d_%d_-g_%d_-Div_%d",
+                        NDim,(INT)atoi(GetArg("-g",argc,argv)),Divide);    
  fprintf(stderr,"%s\n\n",Execution);
 
 

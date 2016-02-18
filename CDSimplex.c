@@ -164,35 +164,83 @@ VOID StoreVertexCDSimplex(PCDSIMPLEX pCDS,PPREAL ppVCoorT, PPREAL ppCDSToVMat,
 }
 
 /*---------------------------------------------------------------------------*/
+BOOL CDSInX123(PPREAL ppVCoorT, PINT pWhich, INT NDim)
+{
+ INT i;
+ INT NPointsIn3D=3;
+ 
+ if (NDim==3)
+    {
+     for (i=0;i<NDim;i++)
+         pWhich[i]=i;
+     return True;
+    }     
+
+ //Only simplices with 3 vertices at x1,x2,x3 neq 0 are drawn. 
+ if (NDim > 3)
+    {
+     NPointsIn3D=0;
+     for (i=0;i<NDim;i++) //Para cada vertice   
+         if (PointInX123(ppVCoorT[i],NDim))
+            { 
+             pWhich[NPointsIn3D]=i;
+             NPointsIn3D++;
+            }
+    }
+
+ if (NPointsIn3D>3)
+    {
+     fprintf(stderr,"CDSInX123: NPointsIn3D=%d.\n",NPointsIn3D);
+     
+     for (i=0;i<NDim;i++)
+         {
+          fprintf(stderr,"v[%d]=\n",i);
+          PrintVR(stderr,ppVCoorT[i],NDim);
+         }
+
+     fputs("\n",stderr);
+     exit(1);
+    } 
+ if (NPointsIn3D==3)    
+    return True;
+ else
+    return False;      
+}
+
+/*---------------------------------------------------------------------------*/
 VOID DrawCDSimplex(PCDSIMPLEX pCDS, PPREAL ppVCoorT, PPREAL ppCDSToVMat,
                    UCHAR Draw, INT NDim, INT WWidth, PCHAR Color)
 {
  INT i;
+ INT pWhich[64];
 
  //ppVCoorT, to reduce memory allocation
 
  //Get the Simplex's V coordinates
  RegToV (NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
+ 
+ if (CDSInX123(ppVCoorT, pWhich, NDim))
+    {
+     printf("DrawLineTriangle\n");
+     for (i=0;i<3;i++)
+         {
+          printf("%f\n",XInWindow(ppVCoorT[pWhich[i]],WWidth));
+          printf("%f\n",YInWindow(ppVCoorT[pWhich[i]],WWidth));
+         }
+     printf("%s\n",Color);
+     printf("%llu\n",pCDS->NSimplex);
 
- printf("DrawLineTriangle\n");
- for (i=0;i<3;i++)
-     {
-      printf("%f\n",XInWindow(ppVCoorT[i],WWidth));
-      printf("%f\n",YInWindow(ppVCoorT[i],WWidth));
+     if (Draw==2)
+     puts("Wait");
 
-     }
- printf("%s\n",Color);
- printf("%llu\n",pCDS->NSimplex);
-
- if (Draw==2)
-    puts("Wait");
-
- fflush(stdout);
+     fflush(stdout);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 VOID DelCDSimplex(PCDSIMPLEX pCDS, UCHAR Draw)
 {
+ //Se puede pedir que lo borre anque no se haya pintado.
  printf("DelLineTriangle\n");
  printf("%llu\n",pCDS->NSimplex);
  if (Draw==2)
@@ -203,32 +251,28 @@ VOID DelCDSimplex(PCDSIMPLEX pCDS, UCHAR Draw)
 /*---------------------------------------------------------------------------*/
 VOID DrawGridPoints(PQueue gridPoints, INT NDim, INT WWidth, PCHAR Color)
 {
-  //int i;
-  ULLINT p = 1;
-  //fprintf(stderr,"GRID POINTS\n");
-  while(Front(gridPoints) != NULL){
-    double* point = Front(gridPoints);
-/*
-    for(i = 0; i < NDim; i++){
-      fprintf(stderr,"%f ", point[i]);
-    }
-    fprintf(stderr,"\n");
-*/
-    printf("DrawPoint\n");
+ ULLINT p = 1;
+ 
+ while (Front(gridPoints) != NULL)
+       {
+        double* point = Front(gridPoints);
+        
+        if (PointInX123(point,NDim))
+           {
+            printf("DrawPoint\n");
+ 
+            printf("%f\n",XInWindow(point,WWidth));
+            printf("%f\n",YInWindow(point,WWidth));
 
-    printf("%f\n",XInWindow(point,WWidth));
-    printf("%f\n",YInWindow(point,WWidth));
+            printf("%s\n",Color);
+            printf("%llu\n",p);
 
-    printf("%s\n",Color);
-    printf("%llu\n",p);
-
-    // No libero porque son los mismo punteros que tiene el arbol
-    //free((void*)point);
-    Pop(gridPoints);
-
-    p = p + 1;
-  }
-
+            // No libero porque son los mismo punteros que tiene el arbol
+            //free((void*)point);
+           } 
+        Pop(gridPoints);
+        p++;
+       }
   fflush(stdout);
 }
 /*---------------------------------------------------------------------------*/

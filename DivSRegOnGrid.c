@@ -1,0 +1,442 @@
+/******************************************************************************
+			RegSDiv-1.2.c  - description
+			----------------------
+	begin		: August 2014
+	copywirght	: (C) 2014 by L.G.Casado.
+
+     ********************************************************************
+     Purpose: Partitioning of a regular n-simplex by regular simplices.
+     	      All tree is built until termination criterion w(S)<=epsilon.
+     	      Partition without overlapping is not possible for n>=3.
+     	      A Depth-Search is done.
+     	      A simplex is divided or stored in the final list if it is not
+     	      already covered by other in the working list.
+*******************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <sys/times.h>
+#include <unistd.h>
+#include "argshand.h"
+#include "getmem.h"
+#include "utils.h"
+#include "btvertex.h"
+#include "CDSimplex.h"
+#include "listCDSimplex.h"
+#include "btCDSimplex.h"
+#include "divide.h"
+#include "gengridpoints.h"
+#include "Queue.h"
+
+/*----------------------------------------------------------------------------*/
+/*                               MAIN                                         */
+/*----------------------------------------------------------------------------*/
+
+int main(int argc,  char *argv[])
+{
+ INT 		i,j;		//Loops
+ ULINT 		CountersCDS[4]; //[0]Generated, [1]Evaluated,
+ 				//[2]Final, [3]Final Equal
+ BOOL 		NoStoreFinalS;
+ BOOL           add;            //To add vertices in InsertBTV
+ CHAR		Execution[256];
+ FILE *		FOut;
+ BOOL 		OutStat;          //OutPut statistics to a file
+ UCHAR		Divide;           //Division method
+ REAL 		IniXi; 		  //Xi values of initial n-simplex
+
+ REAL 		IniLength; 	  //Initial Length
+ REAL		IniLXiRatio;      // InitLenght / IniXi ratio.
+ REAL 		Fraction;	  //Percentage of edge length for new edge
+ REAL   	ParEpsilon;	  //Parameter Epsilon.
+ REAL   	Epsilon;	  //Termination criterion w(S)<=Epsilon. 
+ REAL           gepsilon;         //Epsilon for the grid points.
+ REAL     	ParAlpha;	  //Parameter Alpha
+ REAL     	Alpha;	  	  //User's grid 
+ REAL     	GridSize;	  //Final grid size.
+
+ INT      	PointsPerEdge;    //Grid points per edge.
+ INT      	NFinalSPerEdge;   //Number of Final Simplices per edge.
+ INT		NDim;	 	  //Number of dimensions
+ UCHAR		Draw;		  //Have we graphical output?
+ INT 		WWidth;		  //Window width. graphical purposes.
+
+ PCDSIMPLEX     pCDS;		  //Pointer to a Center-Distance-Simplex
+ PPREAL		ppCDSToVMat;	  //Matrix to move from CDS to VCoor
+ PPREAL		ppVCoorT1;	  //Temporal Vertex Matrix.
+ PPREAL		ppVCoorT2;	  //Temporal Vertex Matrix.
+ PREAL		pCentreT;	  //Temporal centroid.
+
+ PLISTCDS	plcds=NULL;   	  //list with working simplices.
+ PBTCDS	  	pbtCDSEnd=NULL;   //AVL tree with final simplices.
+
+ PBTV		pbtv=NULL;	  //AVL tree of vertices
+
+
+ clock_t        c1,c2;		  //Timing
+ struct tms     t1,t2;            //Timing
+
+
+ 
+
+ /* Check the input parameters.-- -----------------------------------------*/
+ if (ExistArg("--help",argc,argv))
+    ParametersError();
+
+ if (!ExistArg("-d",argc,argv))
+    NDim = 3;
+ else
+     {
+      NDim= atoi(GetArg("-d",argc,argv));
+      if (NDim<=0 || NDim > 16)
+         {
+          fprintf(stderr,"NDim must be > 0 and <=16\n");
+          exit(1);
+         }
+    }
+
+ //Initial coordinates.
+ IniXi     = 1.0;
+ IniLength = sqrt(2.0*IniXi*IniXi);
+ IniLXiRatio = IniLength/IniXi;
+
+ fprintf(stderr,"IniXi=%f, IniLength=%f, IniLXiRatio=%f.\n",
+                 IniXi, IniLength, IniLXiRatio);
+
+ //Epsilon of the grid.
+ if (ExistArg("-gep",argc,argv))
+    {
+     gepsilon = (REAL)atof(GetArg("-gep",argc,argv));
+     if (gepsilon  <= 0 || gepsilon >= IniLength)
+        {
+	 fprintf(stderr,"Epsilon not in (0,1). gep=%f\n",gepsilon);
+	 exit(1);
+	}
+    }
+ else
+    {
+     fputs("Parameter -gep is neccesary.\n",stderr);
+     ParametersError();
+    }
+
+ //Division rule.
+ if (ExistArg("-Div",argc,argv))
+    {
+     Divide = (UCHAR) atoi(GetArg("-Div",argc,argv));
+     if (Divide <(UCHAR)1 || Divide > (UCHAR)6)
+        {
+         fprintf(stderr,"-d in {1,..,6} Divide=%d\n", Divide);
+	 exit(1);
+        }
+    }
+ else
+    Divide=(UCHAR)5;
+
+ //Alpha & Epsilon
+ if ((!ExistArg("-ep",argc,argv) && !ExistArg("-a",argc,argv)) ||
+     ( ExistArg("-ep",argc,argv) &&  ExistArg("-a",argc,argv)))
+   {
+    fputs("Parameter -ep  xor -a are neccesary.\n",stderr);
+    ParametersError();
+   }
+ else
+   {
+    //Alpha
+    if (ExistArg("-a",argc,argv))
+       {
+	ParAlpha = (REAL)atof(GetArg("-a",argc,argv));
+	if (ParAlpha <= 0.0 || ParAlpha >= 1.0)
+	   {
+            fprintf(stderr,"-a=%f must be 0.0 < -a < 1.0\n",ParAlpha);
+	    exit(1);
+	   }
+        //IMPORTANT
+        Alpha=ParAlpha*IniLength; //Fraction of w(S0)
+
+	PointsPerEdge = (INT)ceil(IniLength/Alpha);
+
+	GridSize = IniLength / (REAL) PointsPerEdge  ;
+
+	if (Divide == 3 || Divide == 6)
+	   Epsilon = GridSize * (REAL)(NDim-2);
+	else
+           {
+	    //Epsilon = GridSize * (REAL)(NDim-1);
+            Epsilon = GridSize * (REAL)(NDim-1)/(REAL)(NDim-2);
+            GridSize = Epsilon / (REAL)(NDim-1);
+           }
+        fprintf(stderr,"IniLength     = %f.\n",IniLength);
+        fprintf(stderr,"Alpha         = %f.\n",Alpha);
+	fprintf(stderr,"PointsPerEdge = %d.\n", PointsPerEdge);
+        fprintf(stderr,"GridSize      = %f.\n",GridSize);
+        fprintf(stderr,"Epsilon       = %f.\n\n",Epsilon);
+
+       }
+
+     //Epsilon
+     if (ExistArg("-ep",argc,argv))
+       {
+      	ParEpsilon = (REAL)atof(GetArg("-ep",argc,argv));
+	if ( ParEpsilon <= 0.0 || ParEpsilon >= 1.0 )
+	   {
+            fprintf(stderr,"-ep = %f must be 0.0< -ep < 1.0\n",ParEpsilon);
+	    exit(1);
+	   }
+        //IMPORTANT
+        Epsilon=ParEpsilon*IniLength; //Fraction os w(S0)
+	NFinalSPerEdge = (INT)ceil(IniLength/Epsilon);
+
+	if (Divide == 3 || Divide == 6)
+	   GridSize = IniLength / ( (REAL) NFinalSPerEdge * (REAL)(NDim-2) ) ;
+	else
+	   GridSize = IniLength / ( (REAL) NFinalSPerEdge * (REAL)(NDim-1) ) ;
+
+        fprintf(stderr,"IniLength      = %f.\n",IniLength);
+        fprintf(stderr,"Epsilon        = %f.\n",Epsilon);
+	fprintf(stderr,"NFinalSPerEdge = %d.\n",NFinalSPerEdge);
+        fprintf(stderr,"GridSize       = %f.\n\n",GridSize);
+
+       }
+   }
+
+ //Differet fraction for -Div 1 
+ if (ExistArg("-fr",argc,argv))
+    {
+     if (Divide!=1)
+        {
+         fprintf(stderr,"Fraction is used only with -div 1.\n");
+	 exit(1);
+        }
+     Fraction = (REAL) atof(GetArg("-fr",argc,argv));
+     if (Fraction < 0.0 || Fraction > 1.0)
+        {
+         fprintf(stderr,"Fraction must be in [0,1]\n");
+	 exit(1);
+        }
+     if (Fraction < ((REAL) NDim - 1.0) / (REAL)NDim )
+        {
+         fprintf(stderr,"Fraction must be > d-1/d for 2USC\n");
+	 exit(1);
+        }
+    }
+ else
+     Fraction = ((REAL) NDim - 1.0) / (REAL)NDim;
+
+ //Graphical Output
+ if (ExistArg("-tcl",argc,argv))
+    {
+     if (NDim!=3)
+        {
+   	 fprintf(stderr,"Only three dimensional simplices are drawn. Dim=%d\n",
+	         NDim);
+	 exit(1);
+        }
+     else
+        {
+         if (ExistArg("-w",argc,argv))
+            WWidth = atoi(GetArg("-w",argc,argv));
+         else
+            WWidth = 400;
+	 Draw = (UCHAR) atoi(GetArg("-tcl",argc,argv));
+	 printf("%d\n",WWidth);
+	 printf("%d\n",WWidth);
+	 printf("0.0\n");
+	 printf("IniLength\n"); //TODO: use IniLength, modify XInWindow, YInWindow
+	 printf("0.0\n");
+	 printf("IniLength\n");
+	 printf("%2.4f\n",Epsilon);
+	 printf("%s\n","Regular partition");
+        }
+    }
+ else
+    Draw=False;
+
+ //Store Finals
+ if (!ExistArg("-ns",argc,argv))
+    NoStoreFinalS = False;
+ else
+    NoStoreFinalS = True;
+
+ //Output file with statistics
+ if (!ExistArg("-out",argc,argv))
+    OutStat=False;
+ else
+     OutStat = True;
+
+
+ if (ExistArg("-ep",argc,argv))
+    sprintf(Execution,"DivSRegOnGrid-1.0_-d_%d_-gep_%f_-ep_%3.4f_-Div_%d",
+            NDim,gepsilon,ParEpsilon,Divide);
+ else
+    sprintf(Execution,"DivSRegOnGrid-1.0_-d_%d_-gep_%f_-a_%3.4f_-Div_%d",
+            NDim,gepsilon,ParAlpha,Divide);
+ fprintf(stderr,"%s\n\n",Execution);
+
+
+//-------------------------------------------------------------------------------
+ c1=times(&t1);
+
+
+ //Generate and store the grid points.------------------------------------------
+ PQueue gridPoints = GenGrid(ceil(1/gepsilon)+1, NDim);
+
+ PBTV pbtvGridPoints = NULL; //AVL tree of grid points
+ pbtvGridPoints = NewBTV (pbtvGridPoints);
+
+ do
+   {
+    double* point = Top(gridPoints);
+
+    InsertBTV(pbtvGridPoints, NDim, point, &add);
+    if (add == False)
+       {
+        fprintf(stderr,"Error, ya insertado\n\n");
+        // No existiran dos grid points iguales
+       }
+    Next(gridPoints);
+   }
+ while(End(gridPoints) == 0);
+
+ //PrintBTV(pbtvGridPoints, NDim);
+
+ fprintf(stderr,"N. Grid Points=%d\n", numberGridPoints(ceil(1/gepsilon)+1, NDim));
+
+ // Draw GRID POINTS
+ if (Draw)
+    DrawGridPoints(gridPoints, NDim, WWidth, "Yellow");
+
+ FreeQueue(gridPoints);
+
+
+ //Get memory for temporal matrices and vectors---------------------------------
+ ppVCoorT1 = (PPREAL) GetMem2D((SIZE)NDim,(SIZE)NDim,(SIZE)sizeof(REAL),
+              "RegSDiv:ppVCorrT1");
+ ppVCoorT2 = (PPREAL) GetMem2D((SIZE)NDim,(SIZE)NDim,(SIZE)sizeof(REAL),
+              "RegSDiv:ppVCorrT2");
+ pCentreT  = (PREAL) GetMem   ((SIZE)NDim,           (SIZE)sizeof(REAL),
+              "RegSDiv:pCentreT");
+
+ //Initiate the Data Structures-------------------------------------------------
+ plcds = NewListCDS (plcds);
+ if (!NoStoreFinalS)
+    pbtCDSEnd = NewBTCDS (pbtCDSEnd);
+
+ //AVL of vertices
+ pbtv = NewBTV (pbtv);
+
+ //Set the CDS to Vertices transformation matrix
+ ppCDSToVMat = (PPREAL)GetMem2D((SIZE)NDim,(SIZE)NDim,(SIZE)sizeof(REAL),
+               "RegSDiv:ppCDStoVMat");
+
+ //V= d * CDStoVMat + c
+ //Vertor is not normalized to 1.
+ for (i=0;i<NDim;i++)
+     for (j=0;j<NDim;j++)
+         if (i!=j)
+            ppCDSToVMat[i][j]=-1.0/NDim;
+         else
+            ppCDSToVMat[i][j]=(REAL)(NDim-1)/NDim;
+
+ //PrintMR(stderr,ppCDSToVMat,NDim,NDim);
+
+
+ //Set the initial simplex------------------------------------------------------
+ for (i=0;i<NDim;i++)
+     pCentreT[i]=IniXi/(REAL)NDim;
+
+ //Radious was not calculated. Let's set it as 1
+ pCDS = NewCDSimplex(NDim,pCentreT,IniLength,1.0,True,False,0,0);
+
+ StoreVertexCDSimplex(pCDS, ppVCoorT1, ppCDSToVMat, pbtv, NDim, pbtvGridPoints);
+
+/*
+ fprintf(stderr,"Initial Simplex:\n");
+ PrintCDSimplex(pCDS,NDim);
+*/
+
+ CountersCDS[0]=1;
+ CountersCDS[1]=1;
+ CountersCDS[2]=0;
+ CountersCDS[3]=0;
+
+ if(Draw)
+    DrawCDSimplex(pCDS, ppVCoorT1, ppCDSToVMat, Draw, NDim, WWidth, "Black");
+
+// PrintCDSimplex(pCDS,NDim);
+// PrintMR(stderr,ppVCoorT1,NDim,NDim);
+
+ InsertListCDS(plcds, pCDS);
+
+ //Main loop--------------------------------------------------------------------
+  while (plcds->NElem != 0)
+  {
+    pCDS = ExtractListCDS (plcds);
+
+    pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT,
+               ppCDSToVMat, CountersCDS,
+                           Fraction, Draw, NDim, WWidth,
+                           plcds, pbtCDSEnd, Epsilon, GridSize,
+                           IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints);
+  }
+
+
+ c2=times(&t2);
+//-------------------------------------------------------------------------------
+
+ if (OutStat)
+    {
+     FOut = OpenFile(GetArg("-out",argc,argv),"a");
+     //fprintf(FOut,"%f\t%ld\t%ld\n",
+     //              Epsilon,CountersCDS[1],CountersCDS[0]-CountersCDS[1]);
+     if (ExistArg("-ep",argc,argv))
+        fprintf(FOut,"%f\t%d\n",Epsilon,pbtv->MaxNElem);
+     else
+        fprintf(FOut,"%f\t%d\n",Alpha,pbtv->MaxNElem);
+     fflush(FOut);
+     fclose(FOut);
+    }
+ else
+    {
+     fprintf(stderr,"Time=%f.\n",(REAL)(c2-c1)/(REAL)sysconf(_SC_CLK_TCK));
+     if (ExistArg("-a",argc,argv))
+        fprintf(stderr,"Alpha=%f\t, Epsilon=%f\n",Alpha,Epsilon);
+     // fprintf(stderr,"Number of generated   simplices=%lu.\n",CountersCDS[0]);
+     fprintf(stderr,"Number of covered simplices    = %lu.\n",
+                     CountersCDS[0]-CountersCDS[1]);
+     fprintf(stderr,"%% Cov./Eval.                   = %1.2f\n",
+             (REAL)(CountersCDS[0]-CountersCDS[1])/(REAL)CountersCDS[1]);
+     fprintf(stderr,"Number of final simplices      = %lu.\n",CountersCDS[2]);
+     fprintf(stderr,"Number of equal final simplices= %lu.\n",CountersCDS[3]);
+     fprintf(stderr,"Number of evaluated simplices  = %lu.\n",CountersCDS[1]);
+     fprintf(stderr,"NVertices                      = %d.\n", pbtv->MaxNElem);
+
+     fprintf(stderr,"\nGridPoints=%d/%d(%d)[generated/formula(visited)]\n", 
+             Count(pbtvGridPoints->pFirstBTVNode, NDim), 
+             numberGridPoints(ceil(1/gepsilon)+1,NDim), 
+             CountVisited(pbtvGridPoints->pFirstBTVNode, NDim));
+     //PrintBTV(pbtvGridPoints, NDim);
+
+     fprintf(stderr, "\nEXIT:%d,%f,%d,%d,%d,%d\n", 
+             NDim, gepsilon, Divide, 
+             Count(pbtvGridPoints->pFirstBTVNode, NDim), 
+             CountVisited(pbtvGridPoints->pFirstBTVNode, NDim), 
+             pbtv->MaxNElem);
+    }
+
+
+ if (!NoStoreFinalS)
+    pbtCDSEnd = FreeBTCDS (pbtCDSEnd);
+
+ plcds = FreeListCDS (plcds);
+
+ Free2D((PPVOID) ppCDSToVMat, NDim);
+
+ free((PVOID)pCentreT);
+ Free2D((PPVOID) ppVCoorT1,NDim);
+ Free2D((PPVOID) ppVCoorT2,NDim);
+
+ return 0;
+}

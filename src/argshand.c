@@ -4,22 +4,22 @@
 
 /*----------------------------------------------------------------------------*/
 char *GetArg(char *str_to_find, int narg, char **arg) {
-    int i;                              
-    for(i=0;i<narg;i++)                
-        if(strstr(arg[i],str_to_find)) 
-            return arg[i+1];          
-    return NULL;           
+	int i;
+	for (i = 0; i < narg; i++)
+		if (strstr(arg[i], str_to_find))
+			return arg[i + 1];
+	return NULL;
 }
-
 
 /*----------------------------------------------------------------------------*/
 /* Return 1 if the string 'str_to_find' is in the command line 'arg'          */
 /*----------------------------------------------------------------------------*/
 int ExistArg(char *str_to_find, int narg, char **arg) {
-  int i;
-  for(i=0;i<narg;i++)
-    if(strstr(arg[i],str_to_find)) return 1;
-  return 0;
+	int i;
+	for (i = 0; i < narg; i++)
+		if (strstr(arg[i], str_to_find))
+			return 1;
+	return 0;
 }
 
 /*----------------------------------------------------------------------------*//*----------------------------------------------------------------------------*/

@@ -1,17 +1,17 @@
 /******************************************************************************
-			gengridpoints.h  - description
-			----------------------
-	begin		: Nov 2015
-	copywirght	: (C) 2015 by J.M.G.Ss
+ gengridpoints.h  - description
+ ----------------------
+ begin		: Nov 2015
+ copywirght	: (C) 2015 by J.M.G.Ss
 
-     ********************************************************************
-     Purpose: Rutines to generate grid points.
+ ********************************************************************
+ Purpose: Rutines to generate grid points.
 
-     Routines:
-     	GenGrid():   Generate grid points
+ Routines:
+ GenGrid():   Generate grid points
 
 
-*******************************************************************************/
+ *******************************************************************************/
 #ifndef __GENERATEGRIDPOINTS__
 #define __GENERATEGRIDPOINTS__
 

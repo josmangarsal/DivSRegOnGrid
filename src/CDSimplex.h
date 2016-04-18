@@ -31,6 +31,13 @@
 #ifndef __CDSIMPLEX__
 #define __CDSIMPLEX__
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include "getmem.h"
+#include "utils.h"
+#include "btvertex.h"
 #include "Queue.h"
 
 /*---------------------------------------------------------------------------*/

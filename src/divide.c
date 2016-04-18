@@ -30,10 +30,10 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 	INT j; /*Original Vertex Index*/
 	ULLINT NSimplex;
 	BOOL IsCovered = False;
-	PCDSIMPLEX pCDS_T;     //New Simplex
+	PCDSIMPLEX pCDS_T; //New Simplex
 	UCHAR DivPhase;
-	BOOL Add; 		//Final simplex is added to the btCDS.
-	BOOL Up;		//True = Normal Orientation
+	BOOL Add;	//Final simplex is added to the btCDS.
+	BOOL Up;	//True = Normal Orientation
 
 	DivPhase = (pCDS_O->DivPhase + 1) % 2;
 	Up = pCDS_O->Up;
@@ -46,8 +46,7 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 	 }
 	 */
 
-	for (j = 0; j < NDim; j++) //Number of new simplices
-			{
+	for (j = 0; j < NDim; j++) { //Number of new simplices
 		//Generate the new center
 		for (k = 0; k < NDim; k++) {
 			if (Up)
@@ -103,7 +102,7 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 		}
 	}
 
-	pCountersCDS[0] += NDim; //Number of generated
+	pCountersCDS[0] += NDim; //Number of Generated
 	if (IsCovered)
 		pCDS_T = FreeCDSimplex(pCDS_T);
 
@@ -307,18 +306,19 @@ void CheckRedFact(REAL RedFact, REAL NewRedFact, INT CurrNGrid, INT NewNGrid) {
 /*---------------------------------------------------------------------------*/
 /*Next reduction factor*/
 void NextRF(PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact, PINT pNewNGrid, PREAL pNewRedFact) {
-	/*Requires:
+	/*	Requires:
 	 pCDS = A regular simplex.
 	 GridSize,
-	 RedFact=minimum reduction RedFact
-	 GridSize: 1/g */
-	/*returns
-	 pNewNGrid: number of grids in the new width
-	 NewRedFact: RedFact used to get the new width. */
+	 RedFact=minimum reduction RedFact,
+	 GridSize: 1/g
+	 Returns:
+	 pNewNGrid: number of grids in the new width,
+	 NewRedFact: RedFact used to get the new width.
+	 */
 
-	INT CurrNGrid; 	//Current number of grids in the width
-	INT NewNGrid; 	//Number of Grids for the new Width
-	REAL NewRedFact;	//New Reduction Factor.
+	INT CurrNGrid; 	 //Current number of grids in the width
+	INT NewNGrid; 	 //Number of Grids for the new Width
+	REAL NewRedFact; //New Reduction Factor.
 
 	//Current number of grids.
 	if (EQ(pCDS->L / GridSize, round(pCDS->L / GridSize)))
@@ -335,8 +335,7 @@ void NextRF(PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact, PINT pNewNGrid, PREAL 
 	//New reduction facot
 	NewRedFact = (REAL) NewNGrid / (REAL) CurrNGrid;
 
-// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n",
-//                 CurrNGrid, NewNGrid, NewRedFact);
+	// fprintf(stderr,"CurrNGrid=%d, NewNGrid=%d, NewRedFact=%f.\n\n", CurrNGrid, NewNGrid, NewRedFact);
 
 	CheckRedFact(RedFact, NewRedFact, CurrNGrid, NewNGrid);
 
@@ -353,11 +352,11 @@ PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PP
 
 	switch (Divide) {
 	case 1:  //2USC Grid
-	/*
-	 if (pCDS_O->NSimplex==1) //The same result.
-	 NewRedFact=FirstRF2USC(NDim,InitNGrid);
-	 else
-	 */
+		/*
+		 if (pCDS_O->NSimplex==1) //The same result.
+		 NewRedFact=FirstRF2USC(NDim,InitNGrid);
+		 else
+		 */
 		NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);
 
 		pCDS_O = TwoUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, NewRedFact, Draw, NDim, NDim, WWidth, plcds, pbtCDSEnd,

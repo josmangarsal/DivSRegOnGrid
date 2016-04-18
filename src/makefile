@@ -5,19 +5,30 @@ CC     = gcc
 
 default : DivSRegOnGrid
 
-#-------------------------------------------------------------------------------
-DivSRegOnGrid : makefile DivSRegOnGrid.c argshand.o \
-	getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
-	divide.o btCDSimplex.o
-	$(CC) $(DEBUG) $(FLAGS) -o DivSRegOnGrid \
-	DivSRegOnGrid.c argshand.o getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o \
-	CDSimplex.o listCDSimplex.o divide.o btCDSimplex.o -L/usr/lib64 -lm
+#------------------------------------------------------------------------------
+
+DivSRegOnGrid : makefile DivSRegOnGrid.c argshand.o getmem.o utils.o Queue.o \
+	Map.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
+	listCDSimplexByLevel.o divide.o btCDSimplex.o
+	$(CC) $(DEBUG) $(FLAGS) -o DivSRegOnGrid DivSRegOnGrid.c argshand.o \
+	getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o CDSimplex.o \
+	listCDSimplex.o listCDSimplexByLevel.o divide.o btCDSimplex.o -L/usr/lib64 -lm
+	
+main : makefile main.c argshand.o getmem.o utils.o Queue.o \
+	Map.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
+	listCDSimplexByLevel.o divide.o btCDSimplex.o
+	$(CC) $(DEBUG) $(FLAGS) -o main main.c argshand.o \
+	getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o CDSimplex.o \
+	listCDSimplex.o listCDSimplexByLevel.o divide.o btCDSimplex.o -L/usr/lib64 -lm
 
 btCDSimplex.o : btCDSimplex.c btCDSimplex.h listCDSimplex.o CDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -c -o btCDSimplex.o btCDSimplex.c
 
 divide.o : divide.c divide.h
 	$(CC) $(DEBUG) $(FLAGS) -c -o divide.o divide.c
+	
+listCDSimplexByLevel.o : listCDSimplexByLevel.c listCDSimplexByLevel.h
+	$(CC) $(DEBUG) $(FLAGS) -c -o listCDSimplexByLevel.o listCDSimplexByLevel.c
 
 listCDSimplex.o : listCDSimplex.c listCDSimplex.h CDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -c -o listCDSimplex.o listCDSimplex.c
@@ -47,8 +58,8 @@ argshand.o : argshand.c argshand.h
 	$(CC) $(DEBUG) $(FLAGS) -c -o argshand.o argshand.c
 
 #-------------------------------------------------------------------------------
-clean:
-	rm -f *.o *~ *.bck *.bak DivSRegOnGrid
 
-#-------------------------------------------------------------------------------
+clean:
+	rm -f *.o *~ *.bck *.bak DivSRegOnGrid main
+
 #-------------------------------------------------------------------------------

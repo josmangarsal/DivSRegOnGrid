@@ -5,15 +5,7 @@
  copywirght	: (C) 2010 by L.G.Casado.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include "getmem.h"
-#include "utils.h"
-#include "btvertex.h"
 #include "CDSimplex.h"
-#include "Queue.h"
 
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX GetMemCDSimplex(INT NDim) {

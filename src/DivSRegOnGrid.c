@@ -37,43 +37,43 @@
 /*----------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[]) {
-	INT i, j;		//Loops
-	ULINT CountersCDS[4]; //[0]Generated, [1]Evaluated,
-	//[2]Final, [3]Final Equal
+	INT i, j;						//Loops
+	ULINT CountersCDS[4]; 			//[0]Generated, [1]Evaluated,
+									//[2]Final, [3]Final Equal
 	BOOL NoStoreFinalS;
-	BOOL add;            //To add vertices in InsertBTV
+	BOOL add;            			//To add vertices in InsertBTV
 	CHAR Execution[256];
 	FILE * FOut;
-	BOOL OutStat;          //OutPut statistics to a file
-	UCHAR Divide;           //Division method
-	REAL IniXi; 		  //Xi values of initial n-simplex
+	BOOL OutStat;          			//OutPut statistics to a file
+	UCHAR Divide;           		//Division method
+	REAL IniXi; 		  			//Xi values of initial n-simplex
 
-	REAL IniLength; 	  //Initial Length
-	REAL IniLXiRatio;      // InitLenght / IniXi ratio.
-	REAL Fraction;	  //Percentage of edge length for new edge
-	REAL Epsilon;          //Epsilon to determine the grid
-	REAL GridSize;	  //Final grid size. alpha in BnbGrid article.
-	REAL FinalWidth;	  //Termination criterion w(S)<=FinalWidth.
+	REAL IniLength; 	 			//Initial Length
+	REAL IniLXiRatio;      			//InitLenght / IniXi ratio.
+	REAL Fraction;	  				//Percentage of edge length for new edge
+	REAL Epsilon;          			//Epsilon to determine the grid
+	REAL GridSize;	  				//Final grid size. alpha in BnbGrid article.
+	REAL FinalWidth;	  			//Termination criterion w(S)<=FinalWidth.
 
-	INT InitNGrid = 0;	  //Number of divisions per edge.
-	BOOL SmallInitNGrid = False;  //InitNGrid < 2*NDim-3 for -Div1
-	INT NDim;	 	  //Number of dimensions
-	UCHAR Draw;		  //Have we graphical output?
-	INT WWidth;		  //Window width. graphical purposes.
+	INT InitNGrid = 0;	  			//Number of divisions per edge.
+	BOOL SmallInitNGrid = False;	//InitNGrid < 2*NDim-3 for -Div1
+	INT NDim;	 	  				//Number of dimensions
+	UCHAR Draw;		  				//Have we graphical output?
+	INT WWidth;		  				//Window width. graphical purposes.
 
-	PCDSIMPLEX pCDS;		  //Pointer to a Center-Distance-Simplex
-	PPREAL ppCDSToVMat;	  //Matrix to move from CDS to VCoor
-	PPREAL ppVCoorT1;	  //Temporal Vertex Matrix.
-	PPREAL ppVCoorT2;	  //Temporal Vertex Matrix.
-	PREAL pCentreT;	  //Temporal centroid.
+	PCDSIMPLEX pCDS;		  		//Pointer to a Center-Distance-Simplex
+	PPREAL ppCDSToVMat;	  			//Matrix to move from CDS to VCoor
+	PPREAL ppVCoorT1;	  			//Temporal Vertex Matrix.
+	PPREAL ppVCoorT2;	  			//Temporal Vertex Matrix.
+	PREAL pCentreT;	  				//Temporal centroid.
 
-	PLISTCDS plcds = NULL;   	  //list with working simplices.
-	PBTCDS pbtCDSEnd = NULL;   //AVL tree with final simplices.
+	PLISTCDS plcds = NULL;   	  	//list with working simplices.
+	PBTCDS pbtCDSEnd = NULL;   		//AVL tree with final simplices.
 
-	PBTV pbtv = NULL;	  //AVL tree of vertices
+	PBTV pbtv = NULL;	  			//AVL tree of vertices
 
-	clock_t c1, c2;		  //Timing
-	struct tms t1, t2;            //Timing
+	clock_t c1, c2;		  			//Timing
+	struct tms t1, t2;            	//Timing
 
 	/* Check the input parameters.-- -----------------------------------------*/
 	if (ExistArg("--help", argc, argv))
@@ -107,10 +107,10 @@ int main(int argc, char *argv[]) {
 		Divide = (UCHAR) 1;
 
 	//Minimum fraction factor
-	if (Divide == 1)            //2USC Grid
+	if (Divide == 1) 	//2USC Grid
 		Fraction = ((REAL) NDim - 1.0) / (REAL) NDim;
 
-	if (Divide == 2) //2NUSC Grid
+	if (Divide == 2)	//2NUSC Grid
 			{
 		Fraction = ((REAL) NDim - 2.0) / ((REAL) NDim - 1.0);
 		//fprintf(stderr,"\n2NUSC not updated yet, Divide=%d.\n\n",Divide);
@@ -214,12 +214,12 @@ int main(int argc, char *argv[]) {
 
 	//Output command on screen.
 	if (ExistArg("-ep", argc, argv))
-		sprintf(Execution, "DivSRegOnGrid-1.5_-d_%d_-ep_%f_-Div_%d", NDim, (REAL) atof(GetArg("-ep", argc, argv)), Divide);
+		sprintf(Execution, "DivSRegOnGrid-1.6_-d_%d_-ep_%f_-Div_%d", NDim, (REAL) atof(GetArg("-ep", argc, argv)), Divide);
 	else
-		sprintf(Execution, "DivSRegOnGrid-1.5_-d_%d_-g_%d_-Div_%d", NDim, (INT) atoi(GetArg("-g", argc, argv)), Divide);
+		sprintf(Execution, "DivSRegOnGrid-1.6_-d_%d_-g_%d_-Div_%d", NDim, (INT) atoi(GetArg("-g", argc, argv)), Divide);
 	fprintf(stderr, "%s\n\n", Execution);
 
-//-------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------
 	c1 = times(&t1);
 
 	//Generate and store the grid points.------------------------------------------
@@ -294,8 +294,8 @@ int main(int argc, char *argv[]) {
 	if (Draw)
 		DrawCDSimplex(pCDS, ppVCoorT1, ppCDSToVMat, Draw, NDim, WWidth, "Black");
 
-// PrintCDSimplex(pCDS,NDim);
-// PrintMR(stderr,ppVCoorT1,NDim,NDim);
+	// PrintCDSimplex(pCDS,NDim);
+	// PrintMR(stderr,ppVCoorT1,NDim,NDim);
 
 	InsertListCDS(plcds, pCDS);
 
@@ -312,12 +312,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	c2 = times(&t2);
-//-------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------
 
 	if (OutStat) {
 		FOut = OpenFile(GetArg("-out", argc, argv), "a");
-		//fprintf(FOut,"%f\t%ld\t%ld\n",
-		//              Epsilon,CountersCDS[1],CountersCDS[0]-CountersCDS[1]);
+		//fprintf(FOut,"%f\t%ld\t%ld\n",Epsilon,CountersCDS[1],CountersCDS[0]-CountersCDS[1]);
 		fprintf(FOut, "%f\t%d\n", GridSize, pbtv->MaxNElem);
 		fflush(FOut);
 		fclose(FOut);
@@ -325,7 +324,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Time=%f.\n", (REAL) (c2 - c1) / (REAL) sysconf(_SC_CLK_TCK));
 		fprintf(stderr, "Number of generated   simplices= %lu.\n", CountersCDS[0]);
 		fprintf(stderr, "Number of covered simplices    = %lu.\n", CountersCDS[0] - CountersCDS[1]);
-		fprintf(stderr, "%% Cov./Eval.                   = %1.2f\n", (REAL) (CountersCDS[0] - CountersCDS[1]) / (REAL) CountersCDS[1]);
+		fprintf(stderr, "%% Cov./Eval.                  = %1.2f\n", (REAL) (CountersCDS[0] - CountersCDS[1]) / (REAL) CountersCDS[1]);
 		fprintf(stderr, "Number of final simplices      = %lu.\n", CountersCDS[2]);
 		fprintf(stderr, "Number of equal final simplices= %lu.\n", CountersCDS[3]);
 		fprintf(stderr, "Number of evaluated simplices  = %lu.\n", CountersCDS[1]);

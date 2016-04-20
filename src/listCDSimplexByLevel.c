@@ -150,3 +150,32 @@ VOID PrintListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 		}
 	}
 }
+
+/**
+ * Get first element from list with depth level
+ */
+PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
+	PCDSIMPLEX pCDS;
+
+	if (plcdsbylevel->pFirstLCDS == NULL) {
+		fprintf(stderr, "ExtractListCDSByLevel: Trying to extract from a NULL List of CDSimplexes\n");
+		exit(1);
+	}
+
+	PLCDSNODEBYLEVEL levelNode = plcdsbylevel->pFirstLCDS;
+	PLCDSNODEBYLEVEL previous = NULL;
+	while (levelNode != NULL) {
+		if (levelNode->pnext == NULL) {
+			pCDS = ExtractListCDS(levelNode->plcds);
+			if (levelNode->plcds->NElem == 0)
+				previous->pnext = FreeListCDS(levelNode->plcds);
+			break;
+		}
+		previous = levelNode;
+		levelNode = levelNode->pnext;
+	}
+
+	plcdsbylevel->NElem--;
+
+	return pCDS;
+}

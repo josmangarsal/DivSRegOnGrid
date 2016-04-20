@@ -25,7 +25,7 @@
 #include "utils.h"
 #include "btvertex.h"
 #include "CDSimplex.h"
-#include "listCDSimplex.h"
+#include "listCDSimplexByLevel.h"
 #include "btCDSimplex.h"
 #include "divide.h"
 #include "gengridpoints.h"
@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
 	PPREAL ppVCoorT2;	  			//Temporal Vertex Matrix.
 	PREAL pCentreT;	  				//Temporal centroid.
 
-	PLISTCDS plcds = NULL;   	  	//list with working simplices.
+	//PLISTCDS plcds = NULL;   	  	//list with working simplices.
+	PLISTCDSBYLEVEL plistLevel = NULL;
 	PBTCDS pbtCDSEnd = NULL;   		//AVL tree with final simplices.
 
 	PBTV pbtv = NULL;	  			//AVL tree of vertices
@@ -251,7 +252,8 @@ int main(int argc, char *argv[]) {
 	pCentreT = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 
 	//Initiate the Data Structures-------------------------------------------------
-	plcds = NewListCDS(plcds);
+	//plcds = NewListCDS(plcds);
+	plistLevel = NewListCDSByLevel(plistLevel);
 	if (!NoStoreFinalS)
 		pbtCDSEnd = NewBTCDS(pbtCDSEnd);
 
@@ -297,17 +299,19 @@ int main(int argc, char *argv[]) {
 	// PrintCDSimplex(pCDS,NDim);
 	// PrintMR(stderr,ppVCoorT1,NDim,NDim);
 
-	InsertListCDS(plcds, pCDS);
+	//InsertListCDS(plcds, pCDS);
+	InsertListCDSByLevel(plistLevel, pCDS);
 
 	// Type of USC
 	PMap mapUSC = InitMap();
 	PMap mapNUSC = InitMap();
 
 	//Main loop--------------------------------------------------------------------
-	while (plcds->NElem != 0) {
-		pCDS = ExtractListCDS(plcds);
+	while (plistLevel->NElem != 0){//plcds->NElem != 0) {
+		//pCDS = ExtractListCDS(plcds);
+		pCDS = ExtractListCDSByLevel(plistLevel);
 
-		pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT, ppCDSToVMat, CountersCDS, Fraction, Draw, NDim, WWidth, plcds, pbtCDSEnd,
+		pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT, ppCDSToVMat, CountersCDS, Fraction, Draw, NDim, WWidth, plistLevel, pbtCDSEnd,
 				FinalWidth, GridSize, InitNGrid, IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints, mapUSC, mapNUSC);
 	}
 
@@ -346,7 +350,7 @@ int main(int argc, char *argv[]) {
 	if (!NoStoreFinalS)
 		pbtCDSEnd = FreeBTCDS(pbtCDSEnd);
 
-	plcds = FreeListCDS(plcds);
+	plistLevel = FreeListCDSByLevel(plistLevel);
 
 	Free2D((PPVOID) ppCDSToVMat, NDim);
 

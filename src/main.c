@@ -16,13 +16,13 @@ int main(int argc, char *argv[]) {
 	REAL Epsilon = 1.0 / InitNGrid;
 	INT WWidth = 600;
 
-	PCDSIMPLEX simplex1, simplex2, simplex3, simplex4, simplex5;
+	PCDSIMPLEX simplex1, simplex2, simplex3, simplex4, simplex5, aux;
 	INT i, j;
 	INT NDim = 4;
 	REAL IniXi = 1.0;
 	REAL IniLength = sqrt(2.0 * IniXi * IniXi);
 
-	BOOL Draw = True;
+	BOOL Draw = False;
 
 	PPREAL ppCDSToVMat;
 	PPREAL ppVCoorT;
@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
 	pCentreT5[3] = 0.25;
 	simplex5 = NewCDSimplex(NDim, pCentreT5, sqrt(2) / 4, 0.25, True, False, 5, 0, 4);
 
-	PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
-	PrintCDSimplex(simplex4, NDim, ppVCoorT, ppCDSToVMat);
+	//PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
+	//PrintCDSimplex(simplex4, NDim, ppVCoorT, ppCDSToVMat);
 
 	// DRAW
 	if (Draw) {
@@ -94,15 +94,26 @@ int main(int argc, char *argv[]) {
 	PLISTCDSBYLEVEL lista = NULL;
 	lista = NewListCDSByLevel(lista);
 
-	//InsertListCDSByLevel(lista, simplex1);
-	//InsertListCDSByLevel(lista, simplex2);
+	// INSERT
+	InsertListCDSByLevel(lista, simplex1);
+	InsertListCDSByLevel(lista, simplex2);
 	InsertListCDSByLevel(lista, simplex3);
-	//InsertListCDSByLevel(lista, simplex4);
-	//InsertListCDSByLevel(lista, simplex5);
+	InsertListCDSByLevel(lista, simplex4);
+	InsertListCDSByLevel(lista, simplex5);
 
 	PrintListCDSByLevel(lista);
 
+	//EXTRACT
+	aux = ExtractListCDSByLevel(lista);
+	fprintf(stderr, "Extracted %d from list\n", aux->NSimplex);
+	PrintListCDSByLevel(lista);
+
+	aux = ExtractListCDSByLevel(lista);
+	fprintf(stderr, "Extracted %d from list\n", aux->NSimplex);
+	PrintListCDSByLevel(lista);
+
 	// COVERING
+	//TODO Working on
 	BOOL isCovered = IsCDSByLevelCovered(lista, simplex4, NDim);
 	fprintf(stderr, "%d\n", isCovered);
 

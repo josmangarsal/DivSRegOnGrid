@@ -54,6 +54,7 @@ PLCDSNODEBYLEVEL FreeLCDSNodeByLevel(PLCDSNODEBYLEVEL plcdsnByLevel);
 VOID InsertListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS);
 BOOL IsCDSByLevelCovered(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS, INT NDim);
 VOID PrintListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel);
+PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel);
 
 /*---------------------------------------------------------------------------*/
 

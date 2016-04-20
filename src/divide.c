@@ -13,15 +13,15 @@
 #include "utils.h"
 #include "btvertex.h"
 #include "CDSimplex.h"
-#include "listCDSimplex.h"
+#include "listCDSimplexByLevel.h"
 #include "btCDSimplex.h"
 #include "divide.h"
 
 /*---------------------------------------------------------------------------*/
 /*2USC.									     */
 PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat, PULINT pCountersCDS, REAL RedFact,
-		UCHAR Draw, INT NDim, INT NSons, INT WWidth, PLISTCDS plcds, PBTCDS pbtCDSEnd, REAL FinalWidth, BOOL NoStoreFinalS, PBTV pbtv,
-		PBTV pbtvGridPoints) {
+		UCHAR Draw, INT NDim, INT NSons, INT WWidth, /*PLISTCDS plcds*/PLISTCDSBYLEVEL plistLevel, PBTCDS pbtCDSEnd, REAL FinalWidth,
+		BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints) {
 	//ppVCoor_O and _T are Vertex matrix allocated in main for origin and target.
 	//To reduce memory allocations
 	//pCentre can be used as ppVCoor[0]
@@ -70,7 +70,8 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 		// PrintMR(stderr,ppVCoor_T,NDim,NDim);
 		// fprintf(stderr,"\n\n");
 
-		IsCovered = IsCDSCovered(plcds, pCDS_T, NDim);
+		//IsCovered = IsCDSCovered(plcds, pCDS_T, NDim);
+		IsCovered = IsCDSByLevelCovered(plistLevel, pCDS_T, NDim);
 
 		if (IsCovered) {
 			if (Draw) {
@@ -96,7 +97,8 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 			} else {
 				if (Draw)
 					DrawCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, Draw, NDim, WWidth, "Black");
-				InsertListCDS(plcds, pCDS_T);
+				//InsertListCDS(plcds, pCDS_T);
+				InsertListCDSByLevel(plistLevel, pCDS_T);
 				pCDS_T = NULL;
 			}
 		}
@@ -115,8 +117,8 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 /*2NUSC.							             */
 /*OnGrid = True for checking 2NUSC-Grid                                      */
 PCDSIMPLEX TwoNUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat, PULINT pCountersCDS, REAL RedFact,
-		UCHAR Draw, INT NDim, INT WWidth, PLISTCDS plcds, PBTCDS pbtCDSEnd, REAL FinalWidth, REAL IniLXiRatio, BOOL OnGrid, REAL GridSize,
-		BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC) {
+		UCHAR Draw, INT NDim, INT WWidth, /*PLISTCDS plcds*/PLISTCDSBYLEVEL plistLevel, PBTCDS pbtCDSEnd, REAL FinalWidth, REAL IniLXiRatio,
+		BOOL OnGrid, REAL GridSize, BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC) {
 	REAL UpDownRatio;
 	PCDSIMPLEX pCDS_T;
 	BOOL Up = True;
@@ -167,7 +169,8 @@ PCDSIMPLEX TwoNUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL 
 			if (Draw)
 				DrawCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, Draw, NDim, WWidth, "Yellow");
 
-			InsertListCDS(plcds, pCDS_T);
+			//InsertListCDS(plcds, pCDS_T);
+			InsertListCDSByLevel(plistLevel, pCDS_T);
 			pCDS_T = NULL;
 		}
 	}
@@ -206,7 +209,7 @@ PCDSIMPLEX TwoNUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL 
 	}
 	// Level division control end
 
-	pCDS_O = TwoUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, RedFact, Draw, NDim, NSons, WWidth, plcds, pbtCDSEnd,
+	pCDS_O = TwoUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, RedFact, Draw, NDim, NSons, WWidth, plistLevel, pbtCDSEnd,
 			FinalWidth, NoStoreFinalS, pbtv, pbtvGridPoints);
 
 	return NULL;
@@ -345,8 +348,9 @@ void NextRF(PCDSIMPLEX pCDS, REAL GridSize, REAL RedFact, PINT pNewNGrid, PREAL 
 
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat,
-		PULINT pCountersCDS, REAL RedFact, UCHAR Draw, INT NDim, INT WWidth, PLISTCDS plcds, PBTCDS pbtCDSEnd, REAL FinalWidth, REAL GridSize,
-		INT InitNGrid, REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC) {
+		PULINT pCountersCDS, REAL RedFact, UCHAR Draw, INT NDim, INT WWidth, /*PLISTCDS plcds*/PLISTCDSBYLEVEL plistLevel, PBTCDS pbtCDSEnd,
+		REAL FinalWidth, REAL GridSize, INT InitNGrid, REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC,
+		PMap mapNUSC) {
 	INT NewNGrid;		//Number of Grids for the new Width
 	REAL NewRedFact;	//New reduction factor
 
@@ -359,8 +363,8 @@ PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PP
 		 */
 		NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);
 
-		pCDS_O = TwoUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, NewRedFact, Draw, NDim, NDim, WWidth, plcds, pbtCDSEnd,
-				FinalWidth, NoStoreFinalS, pbtv, pbtvGridPoints);
+		pCDS_O = TwoUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, NewRedFact, Draw, NDim, NDim, WWidth, plistLevel,
+				pbtCDSEnd, FinalWidth, NoStoreFinalS, pbtv, pbtvGridPoints);
 		break;
 	case 2:  //2NUSC Grid
 		if (EQ(RedFact * pCDS_O->L, GridSize)) {
@@ -382,7 +386,7 @@ PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PP
 		} else
 			NextRF(pCDS_O, GridSize, RedFact, &NewNGrid, &NewRedFact);
 
-		pCDS_O = TwoNUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, NewRedFact, Draw, NDim, WWidth, plcds, pbtCDSEnd,
+		pCDS_O = TwoNUSC(pCDS_O, ppVCoor_O, ppVCoor_T, pCentreT, ppCDSToVMat, pCountersCDS, NewRedFact, Draw, NDim, WWidth, plistLevel, pbtCDSEnd,
 				FinalWidth, IniLXiRatio,
 				True, GridSize, NoStoreFinalS, pbtv, pbtvGridPoints, mapUSC, mapNUSC);
 		break;

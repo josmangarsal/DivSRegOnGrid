@@ -24,8 +24,8 @@
 
 /*---------------------------------------------------------------------------*/
 PCDSIMPLEX DivideCDSimplex(UCHAR Divide, PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL pCentreT, PPREAL ppCDSToVMat,
-		PULINT pCountersCDS, REAL Fraction, UCHAR Draw, INT NDim, INT WWidth, PLISTCDS plcds, PBTCDS pbtCDSEnd, REAL Epsilon, REAL GridSize,
-		INT InitNGrid, REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC);
+		PULINT pCountersCDS, REAL Fraction, UCHAR Draw, INT NDim, INT WWidth, /*PLISTCDS plcds*/PLISTCDSBYLEVEL plistLevel, PBTCDS pbtCDSEnd,
+		REAL Epsilon, REAL GridSize, INT InitNGrid, REAL IniLXiRatio, BOOL NoStoreFinalS, PBTV pbtv, PBTV pbtvGridPoints, PMap mapUSC, PMap mapNUSC);
 #endif /*__DIVIDE__*/
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/

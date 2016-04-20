@@ -307,11 +307,14 @@ int main(int argc, char *argv[]) {
 	while (plcds->NElem != 0) {
 		pCDS = ExtractListCDS(plcds);
 
+		if(pCDS->NSimplex == 5524)
+			PrintCDSimplex(pCDS, NDim, ppVCoorT1, ppCDSToVMat);
+/*
 		fprintf(stderr, "NSimplex=%llu.\n", pCDS->NSimplex);
 		PrintVR(stderr, pCDS->pCentre, NDim);
 		fprintf(stderr, "Length=%f.\n", pCDS->L);
 		fprintf(stderr, "Radius=%f.\n", pCDS->R);
-
+*/
 		pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT, ppCDSToVMat, CountersCDS, Fraction, Draw, NDim, WWidth, plcds, pbtCDSEnd,
 				FinalWidth, GridSize, InitNGrid, IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints, mapUSC, mapNUSC);
 	}

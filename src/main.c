@@ -22,6 +22,8 @@ int main(int argc, char *argv[]) {
 	REAL IniXi = 1.0;
 	REAL IniLength = sqrt(2.0 * IniXi * IniXi);
 
+	BOOL Draw = True;
+
 	PPREAL ppCDSToVMat;
 	PPREAL ppVCoorT;
 	ppVCoorT = (PPREAL) GetMem2D((SIZE) NDim, (SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:ppVCorrT");
@@ -40,61 +42,68 @@ int main(int argc, char *argv[]) {
 	simplex1 = NewCDSimplex(NDim, pCentreT1, IniLength, 1.0, True, False, 1, 0, 1);
 
 	PREAL pCentreT2 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
-	pCentreT2[0] = 0.5;//TODO
-	pCentreT2[1] = 0.1666666666666;
-	pCentreT2[2] = 0.1666666666666;
-	pCentreT2[3] = 0.1666666666666;
-	simplex2 = NewCDSimplex(NDim, pCentreT2, 0.942809, 0.6666666, True, True, 2, 0, 2);
+	pCentreT2[0] = pCentreT1[0];
+	pCentreT2[1] = pCentreT1[1] / 2;
+	pCentreT2[2] = pCentreT1[2];
+	pCentreT2[3] = pCentreT1[3] / 2;
+	simplex2 = NewCDSimplex(NDim, pCentreT2, 0.707107, 0.5, True, False, 2, 0, 2);
 
 	PREAL pCentreT3 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	pCentreT3[0] = pCentreT1[0] / 2;
 	pCentreT3[1] = pCentreT1[1] / 2;
 	pCentreT3[2] = pCentreT1[2] / 2;
 	pCentreT3[3] = pCentreT1[3] / 2;
-	simplex3 = NewCDSimplex(NDim, pCentreT3, IniLength / 2, 1.0 / 2, True, False, 3, 0, 3);
+	simplex3 = NewCDSimplex(NDim, pCentreT3, 0.707107, 0.5, True, False, 3, 0, 3);
 
 	PREAL pCentreT4 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
-	pCentreT4[0] = 0.0;
-	pCentreT4[1] = 0.0;
-	pCentreT4[2] = 0.0;
-	pCentreT4[3] = 0.0;
-	simplex4 = NewCDSimplex(NDim, pCentreT4, IniLength, 1.0, True, False, 4, 0, 3);
+	pCentreT4[0] = pCentreT1[0] / 2 + 0.5;
+	pCentreT4[1] = pCentreT1[1] / 2;
+	pCentreT4[2] = pCentreT1[2] / 2;
+	pCentreT4[3] = pCentreT1[3] / 2;
+	simplex4 = NewCDSimplex(NDim, pCentreT4, 0.707107, 0.5, True, False, 4, 0, 3);
 
 	PREAL pCentreT5 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
-	pCentreT5[0] = 0.0;
-	pCentreT5[1] = 0.0;
-	pCentreT5[2] = 0.0;
-	pCentreT5[3] = 0.0;
-	simplex5 = NewCDSimplex(NDim, pCentreT5, IniLength, 1.0, True, False, 5, 0, 1);
+	pCentreT5[0] = 0.625;
+	pCentreT5[1] = 0.0625;
+	pCentreT5[2] = 0.0625;
+	pCentreT5[3] = 0.25;
+	simplex5 = NewCDSimplex(NDim, pCentreT5, sqrt(2) / 4, 0.25, True, False, 5, 0, 4);
+
+	PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
+	PrintCDSimplex(simplex4, NDim, ppVCoorT, ppCDSToVMat);
 
 	// DRAW
-	printf("%d\n", WWidth);
-	printf("%d\n", WWidth);
-	printf("0.0\n");
-	printf("IniLength\n");
-	printf("0.0\n");
-	printf("IniLength\n");
-	printf("%2.4f\n", Epsilon);
-	printf("%s\n", "Regular partition");
+	if (Draw) {
+		printf("%d\n", WWidth);
+		printf("%d\n", WWidth);
+		printf("0.0\n");
+		printf("IniLength\n");
+		printf("0.0\n");
+		printf("IniLength\n");
+		printf("%2.4f\n", Epsilon);
+		printf("%s\n", "Regular partition");
 
-	DrawCDSimplex(simplex1, ppVCoorT, ppCDSToVMat, True, NDim, WWidth, "Black");
-	DrawCDSimplex(simplex2, ppVCoorT, ppCDSToVMat, True, NDim, WWidth, "Black");
-	DrawCDSimplex(simplex3, ppVCoorT, ppCDSToVMat, True, NDim, WWidth, "Black");
+		//DrawCDSimplex(simplex1, ppVCoorT, ppCDSToVMat, Draw, NDim, WWidth, "Black");
+		//DrawCDSimplex(simplex2, ppVCoorT, ppCDSToVMat, Draw, NDim, WWidth, "Red");
+		DrawCDSimplex(simplex3, ppVCoorT, ppCDSToVMat, Draw, NDim, WWidth, "Blue");
+		DrawCDSimplex(simplex4, ppVCoorT, ppCDSToVMat, Draw, NDim, WWidth, "Green");
+		//DrawCDSimplex(simplex5, ppVCoorT, ppCDSToVMat, Draw, NDim, WWidth, "Yellow");
+	}
 
 	// LIST
 	PLISTCDSBYLEVEL lista = NULL;
 	lista = NewListCDSByLevel(lista);
 
-	InsertListCDSByLevel(lista, simplex1);
-	InsertListCDSByLevel(lista, simplex2);
+	//InsertListCDSByLevel(lista, simplex1);
+	//InsertListCDSByLevel(lista, simplex2);
 	InsertListCDSByLevel(lista, simplex3);
-	InsertListCDSByLevel(lista, simplex4);
+	//InsertListCDSByLevel(lista, simplex4);
 	//InsertListCDSByLevel(lista, simplex5);
 
 	PrintListCDSByLevel(lista);
 
 	// COVERING
-	BOOL isCovered = IsCDSByLevelCovered(lista, simplex5, NDim);
+	BOOL isCovered = IsCDSByLevelCovered(lista, simplex4, NDim);
 	fprintf(stderr, "%d\n", isCovered);
 
 	// FREE

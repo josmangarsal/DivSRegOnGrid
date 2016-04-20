@@ -154,8 +154,7 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
 
 	while (pLCDSaux != NULL && IsCovered == False) {
 		pCDSaux = pLCDSaux->pCDS;
-		if (pCDS->Up == pCDSaux->Up) //Only if they has the same orientation
-				{
+		if (pCDS->Up == pCDSaux->Up) { //Only if they has the same orientation
 			IsCovered = True;
 			Up = pCDS->Up;
 			for (j = 0; j < NDim; j++)

@@ -10,6 +10,41 @@
 #include "CDSimplex.h"
 #include "listCDSimplexByLevel.h"
 
+/*---------------------------------------------------------------------------*/
+BOOL IsCovered(PCDSIMPLEX pCDSO, PCDSIMPLEX pCDSD, INT NDim)
+{
+ INT j;
+ 
+ BOOL       IsCovered=False;
+ BOOL       Up;
+ 
+ 
+ if (pCDSO->Up == pCDSD->Up) //Only if they has the same orientation
+    {
+     IsCovered=True;
+     Up=pCDSO->Up;
+     for (j=0;j<NDim;j++)
+         if ( (Up==True && 
+               LT( pCDSO->pCentre[j]-pCDSD->pCentre[j] + 
+                  (pCDSD->R - pCDSO->R) / (REAL) NDim, 0.0) 
+                 ) ||
+              (Up==False && 
+               LT( pCDSD->pCentre[j] - pCDSO->pCentre[j] + 
+                  (pCDSD->R - pCDSO->R) / (REAL) NDim, 0.0)
+                 )                     
+            )  
+           {
+            IsCovered =False;
+            break;
+           } 
+    }
+              
+ return IsCovered; 
+}
+
+
+
+//----------------------------------------------------------------------
 int main(int argc, char *argv[]) {
 	// START
 	INT InitNGrid = 4;
@@ -69,9 +104,14 @@ int main(int argc, char *argv[]) {
 	pCentreT5[3] = 0.25;
 	simplex5 = NewCDSimplex(NDim, pCentreT5, sqrt(2) / 4, 0.25, True, False, 5, 0, 4);
 
-	//PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
-	//PrintCDSimplex(simplex4, NDim, ppVCoorT, ppCDSToVMat);
+	PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
+	PrintCDSimplex(simplex4, NDim, ppVCoorT, ppCDSToVMat);
+         
+        
+        BOOL isCovered=IsCovered(simplex3, simplex4, NDim); 
+	fprintf(stderr, "is covered=%d\n", isCovered);
 
+/*
 	// DRAW
 	if (Draw) {
 		printf("%d\n", WWidth);
@@ -95,11 +135,11 @@ int main(int argc, char *argv[]) {
 	lista = NewListCDSByLevel(lista);
 
 	// INSERT
-	InsertListCDSByLevel(lista, simplex1);
-	InsertListCDSByLevel(lista, simplex2);
+	//InsertListCDSByLevel(lista, simplex1);
+	//InsertListCDSByLevel(lista, simplex2);
 	InsertListCDSByLevel(lista, simplex3);
-	InsertListCDSByLevel(lista, simplex4);
-	InsertListCDSByLevel(lista, simplex5);
+	//InsertListCDSByLevel(lista, simplex4);
+	//InsertListCDSByLevel(lista, simplex5);
 
 	PrintListCDSByLevel(lista);
 
@@ -115,7 +155,7 @@ int main(int argc, char *argv[]) {
 	// COVERING
 	//TODO Working on
 	BOOL isCovered = IsCDSByLevelCovered(lista, simplex4, NDim);
-	fprintf(stderr, "%d\n", isCovered);
+	fprintf(stderr, "is covered=%d\n", isCovered);
 
 	// FREE
 	FreeListCDSByLevel(lista);
@@ -126,6 +166,7 @@ int main(int argc, char *argv[]) {
 	free((PVOID) pCentreT3);
 	free((PVOID) pCentreT4);
 	free((PVOID) pCentreT5);
+*/
 
 	return 0;
 }

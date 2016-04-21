@@ -167,8 +167,11 @@ PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 	while (levelNode != NULL) {
 		if (levelNode->pnext == NULL) {
 			pCDS = ExtractListCDS(levelNode->plcds);
-			if (levelNode->plcds->NElem == 0)
-				previous->pnext = FreeListCDS(levelNode->plcds);
+			if (levelNode->plcds->NElem == 0) {
+				FreeListCDS(levelNode->plcds);
+				if (previous)
+					previous->pnext = NULL;
+			}
 			break;
 		}
 		previous = levelNode;

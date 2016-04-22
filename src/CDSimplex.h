@@ -39,6 +39,7 @@
 #include "utils.h"
 #include "btvertex.h"
 #include "Queue.h"
+#include "listInt.h"
 
 /*---------------------------------------------------------------------------*/
 struct typecdsimplex {
@@ -50,7 +51,7 @@ struct typecdsimplex {
 	BOOL Overlap;
 	UCHAR DivPhase;
 	INT Level;
-	INT previousLevelNoCover;
+	PLISTINT over;
 };
 
 typedef struct typecdsimplex CDSIMPLEX;

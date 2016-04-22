@@ -22,13 +22,13 @@
 /*---------------------------------------------------------------------------*/
 
 struct IntNode {
-	INT id;
+	ULLINT id;
 	INT level;
 	struct IntNode* pnext;
 };
 
 typedef struct IntNode INTNODE;
-typedef INTNODE * PINTNODE;
+typedef INTNODE* PINTNODE;
 
 /*---------------------------------------------------------------------------*/
 
@@ -39,17 +39,17 @@ struct ListInt {
 };
 
 typedef struct ListInt LISTINT;
-typedef LISTINT * PLISTINT;
+typedef LISTINT* PLISTINT;
 
 /*---------------------------------------------------------------------------*/
 
 PLISTINT NewListInt(PLISTINT plint);
 PLISTINT FreeListInt(PLISTINT plint);
-PINTNODE NewIntNode(INT id, INT level);
+PINTNODE NewIntNode(ULLINT id, INT level);
 PINTNODE FreeIntNode(PINTNODE plnode);
 VOID InsertListInt(PLISTINT plint, PINTNODE pIntNode);
 VOID PrintListInt(PLISTINT plint);
-PINTNODE ExtractListIntByID(PLISTINT plint, INT id);
+PINTNODE ExtractListIntByID(PLISTINT plint, ULLINT id);
 
 /*---------------------------------------------------------------------------*/
 

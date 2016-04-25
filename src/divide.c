@@ -61,8 +61,6 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 
 		NSimplex = pCDS_O->NSimplex * NSons + 1 + j;
 
-		//TODO Heritage of parent overlapping list
-
 		if (IsCovered) //Previous simplex was covered. Let's use its memory.
 			UpdateCDSimplex(pCDS_T, NDim, pCentreT, RedFact * pCDS_O->L, RedFact * pCDS_O->R, Up, True, NSimplex, DivPhase);
 		else
@@ -99,6 +97,10 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 			} else {
 				if (Draw)
 					DrawCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, Draw, NDim, WWidth, "Black");
+
+				//TODO Heritage of parent overlapping list
+				pCDS_T->plover = pCDS_O->plover;
+
 				//InsertListCDS(plcds, pCDS_T);
 				InsertListCDSByLevel(plistLevel, pCDS_T);
 				pCDS_T = NULL;

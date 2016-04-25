@@ -51,7 +51,7 @@ struct typecdsimplex {
 	BOOL Overlap;
 	UCHAR DivPhase;
 	INT Level;
-	PLISTINT over;
+	PLISTINT plover;
 };
 
 typedef struct typecdsimplex CDSIMPLEX;

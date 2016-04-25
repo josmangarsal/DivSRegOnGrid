@@ -82,6 +82,24 @@ VOID InsertListInt(PLISTINT plint, PINTNODE pnew) {
 }
 
 /**
+ * Insert new node ordered by level
+ */
+VOID InsertListIntByLevel(PLISTINT plint, PINTNODE pnew) {
+	//TODO
+	if (plint->pFirstInt == NULL)
+		plint->pFirstInt = pnew;
+	else {
+		pnew->pnext = plint->pFirstInt;
+		plint->pFirstInt = pnew;
+	}
+
+	plint->NElem++;
+
+	if (plint->NElem > plint->MaxNElem)
+		plint->MaxNElem = plint->NElem;
+}
+
+/**
  * Print list
  */
 VOID PrintListInt(PLISTINT plint) {
@@ -102,36 +120,67 @@ VOID PrintListInt(PLISTINT plint) {
 	}
 }
 
-//TODO Doing
-
 /**
  * Get element by id
  */
 PINTNODE ExtractListIntByID(PLISTINT plint, ULLINT id) {
-	PCDSIMPLEX pCDS;
-
 	if (plint->pFirstInt == NULL) {
 		fprintf(stderr, "ExtractListIntByID: Trying to extract from a NULL list\n");
 		exit(1);
 	}
 
-	PLCDSNODEBYLEVEL levelNode = plcdsbylevel->pFirstLCDS;
-	PLCDSNODEBYLEVEL previous = NULL;
-	while (levelNode != NULL) {
-		if (levelNode->pnext == NULL) {
-			pCDS = ExtractListCDS(levelNode->plcds);
-			if (levelNode->plcds->NElem == 0) {
-				FreeListCDS(levelNode->plcds);
-				if (previous)
-					previous->pnext = NULL;
+	PINTNODE aux = plint->pFirstInt;
+	PINTNODE previous = NULL;
+	while (aux != NULL) {
+		if (aux->id == id) {
+			if (previous == NULL) {
+				plint->pFirstInt = aux->pnext;
+			} else {
+				previous = aux->pnext; //TODO No update list
 			}
-			break;
+			plint->NElem--;
+			return aux;
 		}
-		previous = levelNode;
-		levelNode = levelNode->pnext;
+		previous = aux;
+		aux = aux->pnext;
 	}
 
-	plcdsbylevel->NElem--;
+	return NULL;
+}
 
-	return pCDS;
+/**
+ * Get first element
+ */
+PINTNODE ExtractFirstListInt(PLISTINT plint) {
+	if (plint->pFirstInt == NULL) {
+		fprintf(stderr, "ExtractFirstListInt: Trying to extract from a NULL list\n");
+		exit(1);
+	}
+
+	PINTNODE aux = plint->pFirstInt;
+	plint->pFirstInt = plint->pFirstInt->pnext;
+	plint->NElem--;
+
+	return aux;
+}
+
+/**
+ * Get element by id
+ */
+PINTNODE GetNodeIntByIndex(PLISTINT plint, INT i) {
+	if (plint->pFirstInt == NULL) {
+		fprintf(stderr, "GetNodeIntByIndex: Trying to get from a NULL list\n");
+		exit(1);
+	}
+
+	PINTNODE aux = plint->pFirstInt;
+	INT now = 0;
+	while (aux != NULL) {
+		if (now == i)
+			return aux;
+		aux = aux->pnext;
+		now++;
+	}
+
+	return NULL;
 }

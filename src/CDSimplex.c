@@ -29,7 +29,7 @@ PCDSIMPLEX GetMemCDSimplex(INT NDim) {
  pCDS->pCentre[i]/=NDim;
  }
 
- //Calculate the Simplex's Length. TODO: it is known from father
+ //Calculate the Simplex's Length. TO-DO: it is known from father
  pCDS->L=DistPoints(ppCoor[0], ppCoor[1], NDim);
 
 
@@ -68,7 +68,7 @@ PCDSIMPLEX NewCDSimplex(INT NDim, PREAL pCentre, REAL L, REAL R, BOOL Up, BOOL O
 	pCDS->DivPhase = DivPhase;
 	pCDS->Level = Level;
 
-	//TODO pOver;
+	pCDS->plover = NewListInt(pCDS->plover);
 
 	return pCDS;
 }

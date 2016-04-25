@@ -70,6 +70,9 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 		// PrintMR(stderr,ppVCoor_T,NDim,NDim);
 		// fprintf(stderr,"\n\n");
 
+		//TODO Heritage of parent overlapping list
+		pCDS_T->plover = pCDS_O->plover;
+
 		//IsCovered = IsCDSCovered(plcds, pCDS_T, NDim);
 		IsCovered = IsCDSByLevelCovered(plistLevel, pCDS_T, NDim);
 
@@ -97,10 +100,6 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 			} else {
 				if (Draw)
 					DrawCDSimplex(pCDS_T, ppVCoor_T, ppCDSToVMat, Draw, NDim, WWidth, "Black");
-
-				//TODO Heritage of parent overlapping list
-				pCDS_T->plover = pCDS_O->plover;
-
 				//InsertListCDS(plcds, pCDS_T);
 				InsertListCDSByLevel(plistLevel, pCDS_T);
 				pCDS_T = NULL;

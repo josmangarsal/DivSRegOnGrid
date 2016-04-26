@@ -13,7 +13,6 @@
 
 BOOL IsCovered(PCDSIMPLEX pCDSO, PCDSIMPLEX pCDSD, INT NDim) {
 	INT j;
-
 	BOOL IsCovered = False;
 	BOOL Up;
 

@@ -115,7 +115,7 @@ BOOL IsCDSByLevelCovered(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS, INT NDim
 	PLCDSNODEBYLEVEL aux = plcdsbylevel->pFirstLCDS;
 	BOOL isCovered = False;
 	while (aux != NULL) {
-		//TODO Search in pCDS list of levels with simplex id
+		//TODO Search in pCDS list of levels from pCDS->lastLevel to pCDS->Level
 		isCovered = IsCDSCovered(aux->plcds, pCDS, NDim);
 
 		if (isCovered == True)

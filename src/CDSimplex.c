@@ -68,7 +68,7 @@ PCDSIMPLEX NewCDSimplex(INT NDim, PREAL pCentre, REAL L, REAL R, BOOL Up, BOOL O
 	pCDS->DivPhase = DivPhase;
 	pCDS->Level = Level;
 
-	pCDS->plover = NewListInt(pCDS->plover);
+	pCDS->lastLevel = 0;
 
 	return pCDS;
 }

@@ -9,26 +9,23 @@ default : DivSRegOnGrid
 
 DivSRegOnGrid : makefile DivSRegOnGrid.c argshand.o getmem.o utils.o Queue.o \
 	Map.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
-	listCDSimplexByLevel.o listInt.o divide.o btCDSimplex.o
+	listCDSimplexByLevel.o divide.o btCDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -o DivSRegOnGrid DivSRegOnGrid.c argshand.o \
 	getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o CDSimplex.o \
-	listCDSimplex.o listCDSimplexByLevel.o listInt.o divide.o btCDSimplex.o -L/usr/lib64 -lm
+	listCDSimplex.o listCDSimplexByLevel.o divide.o btCDSimplex.o -L/usr/lib64 -lm
 	
 main : makefile main.c argshand.o getmem.o utils.o Queue.o \
 	Map.o gengridpoints.o btvertex.o CDSimplex.o listCDSimplex.o \
-	listCDSimplexByLevel.o listInt.o divide.o btCDSimplex.o
+	listCDSimplexByLevel.o divide.o btCDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -o main main.c argshand.o \
 	getmem.o utils.o Queue.o Map.o gengridpoints.o btvertex.o CDSimplex.o \
-	listCDSimplex.o listCDSimplexByLevel.o listInt.o divide.o btCDSimplex.o -L/usr/lib64 -lm
+	listCDSimplex.o listCDSimplexByLevel.o divide.o btCDSimplex.o -L/usr/lib64 -lm
 
 btCDSimplex.o : btCDSimplex.c btCDSimplex.h listCDSimplex.o CDSimplex.o
 	$(CC) $(DEBUG) $(FLAGS) -c -o btCDSimplex.o btCDSimplex.c
 
 divide.o : divide.c divide.h
 	$(CC) $(DEBUG) $(FLAGS) -c -o divide.o divide.c
-	
-listInt.o : listInt.c listInt.h
-	$(CC) $(DEBUG) $(FLAGS) -c -o listInt.o listInt.c
 	
 listCDSimplexByLevel.o : listCDSimplexByLevel.c listCDSimplexByLevel.h
 	$(CC) $(DEBUG) $(FLAGS) -c -o listCDSimplexByLevel.o listCDSimplexByLevel.c

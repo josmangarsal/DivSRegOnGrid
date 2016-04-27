@@ -9,7 +9,6 @@
 #include "utils.h"
 #include "CDSimplex.h"
 #include "listCDSimplexByLevel.h"
-#include "listInt.h"
 
 BOOL IsCovered(PCDSIMPLEX pCDSO, PCDSIMPLEX pCDSD, INT NDim) {
 	INT j;
@@ -125,34 +124,6 @@ int main(int argc, char *argv[]) {
 	InsertListCDSByLevel(lista, simplex5);
 
 	PrintListCDSByLevel(lista);
-
-	fprintf(stderr, "--------------------------------ListInt------------------------------------\n");
-	PLISTINT listInt = NULL;
-	listInt = NewListInt(listInt);
-
-	InsertListInt(listInt, NewIntNode(1, 1));
-	InsertListInt(listInt, NewIntNode(2, 1));
-	InsertListInt(listInt, NewIntNode(3, 2));
-	InsertListInt(listInt, NewIntNode(4, 4));
-
-	PrintListInt(listInt);
-
-	PINTNODE intNode = ExtractFirstListInt(listInt);
-	fprintf(stderr, "\nExtracted (%lld, %d) from listInt\n", intNode->id, intNode->level);
-	FreeIntNode(intNode);
-	PrintListInt(listInt);
-
-	intNode = ExtractFirstListInt(listInt);
-	fprintf(stderr, "\nExtracted (%lld, %d) from listInt\n", intNode->id, intNode->level);
-	FreeIntNode(intNode);
-	PrintListInt(listInt);
-
-	intNode = GetNodeIntByIndex(listInt, 1);
-	fprintf(stderr, "\nGetted (%lld, %d) from listInt with index 1\n", intNode->id, intNode->level);
-	PrintListInt(listInt);
-
-	FreeListInt(listInt);
-	fprintf(stderr, "---------------------------------------------------------------------------\n");
 
 	// COVERING
 	//TODO Working on

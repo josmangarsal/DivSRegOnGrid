@@ -307,12 +307,12 @@ int main(int argc, char *argv[]) {
 	PMap mapNUSC = InitMap();
 
 	//Main loop--------------------------------------------------------------------
-	while (plistLevel->NElem != 0){//plcds->NElem != 0) {
+	while (plistLevel->NElem != 0) {	//plcds->NElem != 0) {
 		//pCDS = ExtractListCDS(plcds);
 		pCDS = ExtractListCDSByLevel(plistLevel);
 
-		pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT, ppCDSToVMat, CountersCDS, Fraction, Draw, NDim, WWidth, plistLevel, pbtCDSEnd,
-				FinalWidth, GridSize, InitNGrid, IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints, mapUSC, mapNUSC);
+		pCDS = DivideCDSimplex(Divide, pCDS, ppVCoorT1, ppVCoorT2, pCentreT, ppCDSToVMat, CountersCDS, Fraction, Draw, NDim, WWidth, plistLevel,
+				pbtCDSEnd, FinalWidth, GridSize, InitNGrid, IniLXiRatio, NoStoreFinalS, pbtv, pbtvGridPoints, mapUSC, mapNUSC);
 	}
 
 	c2 = times(&t2);
@@ -338,10 +338,14 @@ int main(int argc, char *argv[]) {
 				Divide, Count(pbtvGridPoints->pFirstBTVNode, NDim), numberGridPoints(ceil(1 / Epsilon) + 1, NDim),
 				CountVisited(pbtvGridPoints->pFirstBTVNode, NDim), pbtv->MaxNElem, CountersCDS[1]);
 
-		fprintf(stderr, "2USC\n");
-		ShowMap(mapUSC);
-		fprintf(stderr, "2NUSC\n");
-		ShowMap(mapNUSC);
+		if (mapUSC->size > 0) {
+			fprintf(stderr, "2USC\n");
+			ShowMap(mapUSC);
+		}
+		if (mapNUSC->size > 0) {
+			fprintf(stderr, "2NUSC\n");
+			ShowMap(mapNUSC);
+		}
 
 		FreeMap(mapUSC);
 		FreeMap(mapNUSC);

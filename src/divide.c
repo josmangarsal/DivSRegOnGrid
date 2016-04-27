@@ -71,7 +71,7 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 		// fprintf(stderr,"\n\n");
 
 		//TODO Heritage of parent overlapping list
-		pCDS_T->plover = pCDS_O->plover;
+		pCDS_T->lastLevel = pCDS_O->lastLevel;
 
 		//IsCovered = IsCDSCovered(plcds, pCDS_T, NDim);
 		IsCovered = IsCDSByLevelCovered(plistLevel, pCDS_T, NDim);

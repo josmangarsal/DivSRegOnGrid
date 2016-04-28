@@ -115,14 +115,15 @@ BOOL IsCDSByLevelCovered(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS, INT NDim
 	PLCDSNODEBYLEVEL aux = plcdsbylevel->pFirstLCDS;
 	BOOL isCovered = False;
 
-	while (aux != NULL && pCDS->lastLevel <= aux->level && aux->level < pCDS->Level) {
+	while (aux != NULL) {
 		// Search in pCDS list of levels from pCDS->lastLevel to pCDS->Level
-		isCovered = IsCDSCovered(aux->plcds, pCDS, NDim);
+		if (pCDS->lastLevel <= aux->level && aux->level < pCDS->Level) {
+			isCovered = IsCDSCovered(aux->plcds, pCDS, NDim);
 
-		if (isCovered){
-			return True;
+			if (isCovered) {
+				return True;
+			}
 		}
-
 		aux = aux->pnext;
 	}
 	return False;

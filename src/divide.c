@@ -146,6 +146,9 @@ PCDSIMPLEX TwoNUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL 
 		pCDS_T = NewCDSimplex(NDim, pCDS_O->pCentre, UpDownRatio * pCDS_O->L, UpDownRatio * pCDS_O->R, Up, False, NSimplex, pCDS_O->DivPhase,
 				pCDS_O->Level + 1);
 
+		//TODO Heritage of parent overlapping list
+		pCDS_T->lastLevel = pCDS_O->lastLevel;
+
 		pCountersCDS[0]++; //Number of Generated
 		pCountersCDS[1]++; //Number of Evaluated
 

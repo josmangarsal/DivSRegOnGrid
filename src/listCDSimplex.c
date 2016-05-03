@@ -168,6 +168,9 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
 		pLCDSaux = pLCDSaux->pnext;
 	}
 
+	if(IsCovered == False)
+		pCDS->lastLevel++;
+
 	return IsCovered;
 }
 /*---------------------------------------------------------------------------*/

@@ -147,6 +147,9 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
 	BOOL IsCovered = False;
 	BOOL Up;
 
+	BOOL IsOverlaped = False;
+	REAL distanceCenters;
+
 	pLCDSaux = pLCDS->pFirstLCDS;
 
 	if (pLCDSaux == NULL)
@@ -157,18 +160,46 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
 		if (pCDS->Up == pCDSaux->Up) { //Only if they has the same orientation
 			IsCovered = True;
 			Up = pCDS->Up;
-			for (j = 0; j < NDim; j++)
-				if ((Up == True && LT(pCDS->pCentre[j] - pCDSaux->pCentre[j] + (pCDSaux->R - pCDS->R) / (REAL) NDim, 0.0))
-						|| (Up == False && LT(pCDSaux->pCentre[j] - pCDS->pCentre[j] + (pCDSaux->R - pCDS->R) / (REAL) NDim, 0.0))) {
-					IsCovered = False;
-					break;
+
+			//Overlaping test
+			if (Up == True) {
+				distanceCenters = 0.0;
+				for (j = 0; j < NDim; j++)
+					distanceCenters += pow(pCDS->pCentre[j] - pCDSaux->pCentre[j], 2);
+				//distanceCenters = sqrt(distanceCenters);
+
+				/*
+				 * Suma de radios menor a distancia entre centros indica
+				 * que los circulos están solapados (aunque no siginifica
+				 * que los simplices lo esten)
+				 *
+				 * ¿La distancia Euclidea es correcta en este caso?
+				 */
+
+				if (pow(pCDS->R + pCDSaux->R, 2) < distanceCenters) {
+					IsOverlaped = True;
+
+					for (j = 0; j < NDim; j++)
+						if (LT(pCDS->pCentre[j] - pCDSaux->pCentre[j] + (pCDSaux->R - pCDS->R) / (REAL) NDim, 0.0)) {
+							IsCovered = False;
+							break;
+						}
 				}
+			} else { // Up == False
+				//TODO WHEN OVERLAPED? NEVER?
+				for (j = 0; j < NDim; j++)
+					if (LT(pCDSaux->pCentre[j] - pCDS->pCentre[j] + (pCDSaux->R - pCDS->R) / (REAL) NDim, 0.0)) {
+						IsCovered = False;
+						break;
+					}
+			}
 		}
 		//next simplex in the list.
 		pLCDSaux = pLCDSaux->pnext;
 	}
 
-	if(IsCovered == False)
+	// Not overlaping in level
+	if (IsOverlaped == False)
 		pCDS->lastLevel++;
 
 	return IsCovered;

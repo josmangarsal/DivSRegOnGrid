@@ -140,7 +140,7 @@ VOID PrintListCDS(PLISTCDS plcds, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat)
 
 /*---------------------------------------------------------------------------*/
 BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat) {
-	INT j;
+	INT i, j;
 	PLCDSNODE pLCDSaux;
 	PCDSIMPLEX pCDSaux;
 
@@ -156,8 +156,17 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PP
 		return False;
 
 	//TODO Center of pCDS
+	PREAL pCentreCDS = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "IsCDSCovered->pCentreCDS");
+	PREAL pCentreCDSaux = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "IsCDSCovered->pCentreCDSaux");
+
 	RegToV(NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
 
+	for (i = 0; i < NDim; i++) {
+		pCentreCDS[i] = 0.0;
+		for (j = 0; j < NDim; j++)
+			pCentreCDS[i] += ppVCoorT[i][j];
+		pCentreCDS[i] /= NDim;
+	}
 
 	while (pLCDSaux != NULL && IsCovered == False) {
 		pCDSaux = pLCDSaux->pCDS;
@@ -168,19 +177,25 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PP
 			//Overlaping test
 			if (Up == True) {
 				//TODO Center of pCDSaux
+				RegToV(NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
+
+				for (i = 0; i < NDim; i++) {
+					pCentreCDSaux[i] = 0.0;
+					for (j = 0; j < NDim; j++)
+						pCentreCDSaux[i] += ppVCoorT[i][j];
+					pCentreCDSaux[i] /= NDim;
+				}
 
 				//TODO Distance between centers
 				distanceCenters = 0.0;
 				for (j = 0; j < NDim; j++)
-					distanceCenters += pow(pCDS->pCentre[j] - pCDSaux->pCentre[j], 2);
+					distanceCenters += pow(pCentreCDS - pCentreCDSaux, 2);
 				//distanceCenters = sqrt(distanceCenters);
 
 				/*
 				 * Suma de radios menor a distancia entre centros indica
 				 * que los circulos están solapados (aunque no siginifica
 				 * que los simplices lo esten)
-				 *
-				 * ¿La distancia Euclidea es correcta en este caso?
 				 */
 
 				if (pow(pCDS->R + pCDSaux->R, 2) < distanceCenters) {

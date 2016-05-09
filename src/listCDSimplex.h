@@ -60,7 +60,7 @@ PLISTCDS FreeListCDS(PLISTCDS plcds);
 VOID InsertListCDS(PLISTCDS plcds, PCDSIMPLEX pCDS);
 PCDSIMPLEX ExtractListCDS(PLISTCDS plcds);
 VOID PrintListCDS(PLISTCDS plcds, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat);
-BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim);
+BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat);
 
 #endif /*__LISTCDS__*/		     
 /*---------------------------------------------------------------------------*/

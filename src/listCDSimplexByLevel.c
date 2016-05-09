@@ -111,14 +111,14 @@ VOID InsertListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS) {
 /**
  * Check simplex cover
  */
-BOOL IsCDSByLevelCovered(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS, INT NDim) {
+BOOL IsCDSByLevelCovered(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat) {
 	PLCDSNODEBYLEVEL aux = plcdsbylevel->pFirstLCDS;
 	BOOL isCovered = False;
 
 	while (aux != NULL) {
 		// Search in pCDS list of levels from pCDS->lastLevel to pCDS->Level
 		if (pCDS->lastLevel <= aux->level && aux->level < pCDS->Level) {
-			isCovered = IsCDSCovered(aux->plcds, pCDS, NDim);
+			isCovered = IsCDSCovered(aux->plcds, pCDS, NDim, ppVCoorT, ppCDSToVMat);
 
 			if (isCovered) {
 				return True;

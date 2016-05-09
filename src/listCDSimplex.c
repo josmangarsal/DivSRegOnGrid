@@ -139,7 +139,7 @@ VOID PrintListCDS(PLISTCDS plcds, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat)
 }
 
 /*---------------------------------------------------------------------------*/
-BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
+BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PPREAL ppCDSToVMat) {
 	INT j;
 	PLCDSNODE pLCDSaux;
 	PCDSIMPLEX pCDSaux;
@@ -155,6 +155,10 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
 	if (pLCDSaux == NULL)
 		return False;
 
+	//TODO Center of pCDS
+	RegToV(NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
+
+
 	while (pLCDSaux != NULL && IsCovered == False) {
 		pCDSaux = pLCDSaux->pCDS;
 		if (pCDS->Up == pCDSaux->Up) { //Only if they has the same orientation
@@ -163,6 +167,9 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim) {
 
 			//Overlaping test
 			if (Up == True) {
+				//TODO Center of pCDSaux
+
+				//TODO Distance between centers
 				distanceCenters = 0.0;
 				for (j = 0; j < NDim; j++)
 					distanceCenters += pow(pCDS->pCentre[j] - pCDSaux->pCentre[j], 2);

@@ -74,7 +74,7 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 		pCDS_T->lastLevel = pCDS_O->lastLevel;
 
 		//IsCovered = IsCDSCovered(plcds, pCDS_T, NDim);
-		IsCovered = IsCDSByLevelCovered(plistLevel, pCDS_T, NDim);
+		IsCovered = IsCDSByLevelCovered(plistLevel, pCDS_T, NDim, ppVCoor_T, ppCDSToVMat);
 
 		if (IsCovered) {
 			if (Draw) {

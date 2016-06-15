@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
 	PCDSIMPLEX simplex1, simplex2, simplex3, simplex4, simplex5, aux;
 	INT i, j;
-	INT NDim = 4;
+	INT NDim = 3;
 	REAL IniXi = 1.0;
 	REAL IniLength = sqrt(2.0 * IniXi * IniXi);
 
@@ -64,28 +64,28 @@ int main(int argc, char *argv[]) {
 	pCentreT2[0] = pCentreT1[0];
 	pCentreT2[1] = pCentreT1[1] / 2;
 	pCentreT2[2] = pCentreT1[2];
-	pCentreT2[3] = pCentreT1[3] / 2;
+	//pCentreT2[3] = pCentreT1[3] / 2;
 	simplex2 = NewCDSimplex(NDim, pCentreT2, 0.707107, 0.5, True, False, 2, 0, 2);
 
 	PREAL pCentreT3 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	pCentreT3[0] = pCentreT1[0] / 2;
 	pCentreT3[1] = pCentreT1[1] / 2;
 	pCentreT3[2] = pCentreT1[2] / 2;
-	pCentreT3[3] = pCentreT1[3] / 2;
+	//pCentreT3[3] = pCentreT1[3] / 2;
 	simplex3 = NewCDSimplex(NDim, pCentreT3, 0.707107, 0.5, True, False, 3, 0, 3);
 
 	PREAL pCentreT4 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	pCentreT4[0] = pCentreT1[0] / 2 + 0.5;
 	pCentreT4[1] = pCentreT1[1] / 2;
 	pCentreT4[2] = pCentreT1[2] / 2;
-	pCentreT4[3] = pCentreT1[3] / 2;
+	//pCentreT4[3] = pCentreT1[3] / 2;
 	simplex4 = NewCDSimplex(NDim, pCentreT4, 0.707107, 0.5, True, False, 4, 0, 3);
 
 	PREAL pCentreT5 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	pCentreT5[0] = 0.625;
 	pCentreT5[1] = 0.0625;
 	pCentreT5[2] = 0.0625;
-	pCentreT5[3] = 0.25;
+	//pCentreT5[3] = 0.25;
 	simplex5 = NewCDSimplex(NDim, pCentreT5, sqrt(2) / 4, 0.25, True, False, 5, 0, 4);
 
 	//PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
@@ -116,6 +116,10 @@ int main(int argc, char *argv[]) {
 	PLISTCDSBYLEVEL lista = NULL;
 	lista = NewListCDSByLevel(lista);
 
+	// COVERING
+	isCovered = IsCDSByLevelCovered(lista, simplex4, NDim, ppVCoorT, ppCDSToVMat);
+	fprintf(stderr, "is covered in list ? %d\n", isCovered);
+
 	// INSERT
 	InsertListCDSByLevel(lista, simplex1);
 	InsertListCDSByLevel(lista, simplex2);
@@ -126,8 +130,7 @@ int main(int argc, char *argv[]) {
 	PrintListCDSByLevel(lista);
 
 	// COVERING
-	//TODO Working on
-	isCovered = IsCDSByLevelCovered(lista, simplex4, NDim);
+	isCovered = IsCDSByLevelCovered(lista, simplex4, NDim, ppVCoorT, ppCDSToVMat);
 	fprintf(stderr, "is covered in list ? %d\n", isCovered);
 
 	// EXTRACT

@@ -70,7 +70,7 @@ PCDSIMPLEX TwoUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL p
 		// PrintMR(stderr,ppVCoor_T,NDim,NDim);
 		// fprintf(stderr,"\n\n");
 
-		//TODO Heritage of parent overlapping list
+		// Heritage of parent overlapping list
 		pCDS_T->lastLevel = pCDS_O->lastLevel;
 
 		//IsCovered = IsCDSCovered(plcds, pCDS_T, NDim);
@@ -146,7 +146,7 @@ PCDSIMPLEX TwoNUSC(PCDSIMPLEX pCDS_O, PPREAL ppVCoor_O, PPREAL ppVCoor_T, PREAL 
 		pCDS_T = NewCDSimplex(NDim, pCDS_O->pCentre, UpDownRatio * pCDS_O->L, UpDownRatio * pCDS_O->R, Up, False, NSimplex, pCDS_O->DivPhase,
 				pCDS_O->Level + 1);
 
-		//TODO Heritage of parent overlapping list
+		// Heritage of parent overlapping list
 		pCDS_T->lastLevel = pCDS_O->lastLevel;
 
 		pCountersCDS[0]++; //Number of Generated

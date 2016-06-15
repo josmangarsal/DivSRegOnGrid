@@ -155,7 +155,7 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PP
 	if (pLCDSaux == NULL)
 		return False;
 
-	//TODO Center of pCDS
+	// Center of pCDS
 	PREAL pCentreCDS = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "IsCDSCovered->pCentreCDS");
 	PREAL pCentreCDSaux = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "IsCDSCovered->pCentreCDSaux");
 
@@ -176,7 +176,7 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PP
 
 			//Overlaping test
 			if (Up == True) {
-				//TODO Center of pCDSaux
+				// Center of pCDSaux
 				RegToV(NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
 
 				for (i = 0; i < NDim; i++) {
@@ -186,7 +186,7 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PP
 					pCentreCDSaux[i] /= NDim;
 				}
 
-				//TODO Distance between centers
+				// Distance between centers
 				distanceCenters = 0.0;
 				for (j = 0; j < NDim; j++)
 					distanceCenters += pow(pCentreCDS - pCentreCDSaux, 2);

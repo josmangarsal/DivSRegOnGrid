@@ -65,6 +65,7 @@ PLCDSNODEBYLEVEL FreeLCDSNodeByLevel(PLCDSNODEBYLEVEL plcdsnByLevel) {
 	}
 
 	free((PVOID) plcdsnByLevel);
+	plcdsnByLevel = NULL;
 
 	return NULL;
 }
@@ -106,6 +107,9 @@ VOID InsertListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS) {
 		plcdsbylevel->pFirstLCDS = plcsnbylevelNew;
 	}
 	plcdsbylevel->NElem++;
+
+	fprintf(stderr, "Insert %lld\n", pCDS->NSimplex);
+	PrintListCDSByLevel(plcdsbylevel);
 }
 
 /**
@@ -172,7 +176,7 @@ PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 		if (levelNode->pnext == NULL) {
 			pCDS = ExtractListCDS(levelNode->plcds);
 			if (levelNode->plcds->NElem == 0) {
-				FreeListCDS(levelNode->plcds);
+				FreeLCDSNodeByLevel(levelNode);
 				if (previous)
 					previous->pnext = NULL;
 			}
@@ -183,6 +187,9 @@ PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 	}
 
 	plcdsbylevel->NElem--;
+
+	fprintf(stderr, "Extract %lld\n", pCDS->NSimplex);
+	PrintListCDSByLevel(plcdsbylevel);
 
 	return pCDS;
 }

@@ -76,15 +76,37 @@ PLISTCDS FreeListCDS(PLISTCDS plcds) {
 /*Insert at beginning of the list                                            */
 /*---------------------------------------------------------------------------*/
 VOID InsertListCDS(PLISTCDS plcds, PCDSIMPLEX pCDS) {
-	PLCDSNODE pnew;
+	PLCDSNODE pnew, paux;
 
 	pnew = NewLCDSNode(pCDS);
 
 	if (plcds->pFirstLCDS == NULL)
 		plcds->pFirstLCDS = pnew;
 	else {
-		pnew->pnext = plcds->pFirstLCDS;
-		plcds->pFirstLCDS = pnew;
+		paux = plcds->pFirstLCDS;
+		while (paux != NULL) {
+			if (paux->pnext != NULL) {
+				if (pnew->pCDS->NSimplex < paux->pCDS->NSimplex) {
+					pnew->pnext = paux;
+					plcds->pFirstLCDS = pnew;
+					break;
+				} else if (pnew->pCDS->NSimplex < paux->pnext->pCDS->NSimplex) {
+					pnew->pnext = paux->pnext;
+					paux->pnext = pnew;
+					break;
+				}
+			} else {
+				if (pnew->pCDS->NSimplex > paux->pCDS->NSimplex) {
+					paux->pnext = pnew;
+				} else {
+					pnew->pnext = paux;
+					plcds->pFirstLCDS = pnew;
+				}
+				break;
+			}
+
+			paux = paux->pnext;
+		}
 	}
 
 	plcds->NElem++;

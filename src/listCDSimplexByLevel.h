@@ -27,6 +27,7 @@
 struct lcdsnodebylevel {
 	PLISTCDS plcds;
 	int level;
+	REAL beta;
 	struct lcdsnodebylevel * pnext;
 };
 

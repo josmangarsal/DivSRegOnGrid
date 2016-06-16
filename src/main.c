@@ -58,14 +58,14 @@ int main(int argc, char *argv[]) {
 	PREAL pCentreT1 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	for (i = 0; i < NDim; i++)
 		pCentreT1[i] = IniXi / (REAL) NDim;
-	simplex1 = NewCDSimplex(NDim, pCentreT1, IniLength, 1.0, True, False, 1, 0, 1);
+	simplex1 = NewCDSimplex(NDim, pCentreT1, IniLength, 1.0, True, False, 6, 0, 3);
 
 	PREAL pCentreT2 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	pCentreT2[0] = pCentreT1[0];
 	pCentreT2[1] = pCentreT1[1] / 2;
 	pCentreT2[2] = pCentreT1[2];
 	//pCentreT2[3] = pCentreT1[3] / 2;
-	simplex2 = NewCDSimplex(NDim, pCentreT2, 0.707107, 0.5, True, False, 2, 0, 2);
+	simplex2 = NewCDSimplex(NDim, pCentreT2, 0.707107, 0.5, True, False, 2, 0, 3);
 
 	PREAL pCentreT3 = (PREAL) GetMem((SIZE) NDim, (SIZE) sizeof(REAL), "RegSDiv:pCentreT");
 	pCentreT3[0] = pCentreT1[0] / 2;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 	pCentreT5[1] = 0.0625;
 	pCentreT5[2] = 0.0625;
 	//pCentreT5[3] = 0.25;
-	simplex5 = NewCDSimplex(NDim, pCentreT5, sqrt(2) / 4, 0.25, True, False, 5, 0, 4);
+	simplex5 = NewCDSimplex(NDim, pCentreT5, sqrt(2) / 4, 0.25, True, False, 5, 0, 3);
 
 	//PrintCDSimplex(simplex3, NDim, ppVCoorT, ppCDSToVMat);
 	//PrintCDSimplex(simplex4, NDim, ppVCoorT, ppCDSToVMat);
@@ -130,17 +130,28 @@ int main(int argc, char *argv[]) {
 	 fprintf(stderr, "\nExtracted %lld from list\n", aux->NSimplex);
 	 */
 	//TEST Extracción
-
 	// COVERING
 	isCovered = IsCDSByLevelCovered(lista, simplex4, NDim, ppVCoorT, ppCDSToVMat);
 	fprintf(stderr, "is covered in list ? %d\n", isCovered);
 
 	// INSERT
-	InsertListCDSByLevel(lista, simplex1);
-	InsertListCDSByLevel(lista, simplex2);
+	//InsertListCDSByLevel(lista, simplex1);
+	//InsertListCDSByLevel(lista, simplex2);
+
+	fprintf(stderr, "\nInsert %lld in list\n", simplex3->NSimplex);
 	InsertListCDSByLevel(lista, simplex3);
-	InsertListCDSByLevel(lista, simplex4);
+	PrintListCDSByLevel(lista);
+	fprintf(stderr, "\nInsert %lld in list\n", simplex5->NSimplex);
 	InsertListCDSByLevel(lista, simplex5);
+	PrintListCDSByLevel(lista);
+	fprintf(stderr, "\nInsert %lld in list\n", simplex2->NSimplex);
+	InsertListCDSByLevel(lista, simplex2);
+	PrintListCDSByLevel(lista);
+	fprintf(stderr, "\nInsert %lld in list\n", simplex1->NSimplex);
+	InsertListCDSByLevel(lista, simplex1);
+	fprintf(stderr, "\nInsert %lld in list\n", simplex4->NSimplex);
+	InsertListCDSByLevel(lista, simplex4);
+	PrintListCDSByLevel(lista);
 
 	PrintListCDSByLevel(lista);
 

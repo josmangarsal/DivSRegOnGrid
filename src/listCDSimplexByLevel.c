@@ -107,9 +107,6 @@ VOID InsertListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel, PCDSIMPLEX pCDS) {
 		plcdsbylevel->pFirstLCDS = plcsnbylevelNew;
 	}
 	plcdsbylevel->NElem++;
-
-	fprintf(stderr, "Insert %lld\n", pCDS->NSimplex);
-	PrintListCDSByLevel(plcdsbylevel);
 }
 
 /**
@@ -165,11 +162,6 @@ VOID PrintListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 	PCDSIMPLEX pCDS;
 
-	if (plcdsbylevel->pFirstLCDS == NULL) {
-		fprintf(stderr, "ExtractListCDSByLevel: Trying to extract from a NULL List of CDSimplexes\n");
-		exit(1);
-	}
-
 	PLCDSNODEBYLEVEL levelNode = plcdsbylevel->pFirstLCDS;
 	PLCDSNODEBYLEVEL previous = NULL;
 	while (levelNode != NULL) {
@@ -188,8 +180,9 @@ PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 
 	plcdsbylevel->NElem--;
 
-	fprintf(stderr, "Extract %lld\n", pCDS->NSimplex);
-	PrintListCDSByLevel(plcdsbylevel);
+	if(plcdsbylevel->NElem == 0){
+		plcdsbylevel->pFirstLCDS = NULL;
+	}
 
 	return pCDS;
 }

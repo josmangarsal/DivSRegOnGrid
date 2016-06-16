@@ -116,6 +116,21 @@ int main(int argc, char *argv[]) {
 	PLISTCDSBYLEVEL lista = NULL;
 	lista = NewListCDSByLevel(lista);
 
+//TEST Extracción
+	InsertListCDSByLevel(lista, simplex1);	//InsertListCDSByLevel(lista, simplex3);
+	aux = ExtractListCDSByLevel(lista);
+	fprintf(stderr, "\nExtracted %lld from list\n", aux->NSimplex);
+	/*
+	 InsertListCDSByLevel(lista, simplex2);
+	 aux = ExtractListCDSByLevel(lista);
+	 fprintf(stderr, "\nExtracted %lld from list\n", aux->NSimplex);
+	 aux = ExtractListCDSByLevel(lista);
+	 fprintf(stderr, "\nExtracted %lld from list\n", aux->NSimplex);
+	 aux = ExtractListCDSByLevel(lista);
+	 fprintf(stderr, "\nExtracted %lld from list\n", aux->NSimplex);
+	 */
+	//TEST Extracción
+
 	// COVERING
 	isCovered = IsCDSByLevelCovered(lista, simplex4, NDim, ppVCoorT, ppCDSToVMat);
 	fprintf(stderr, "is covered in list ? %d\n", isCovered);

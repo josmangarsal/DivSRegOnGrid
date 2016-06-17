@@ -162,6 +162,11 @@ VOID PrintListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 	PCDSIMPLEX pCDS;
 
+	if (plcdsbylevel->pFirstLCDS == NULL) {
+		fprintf(stderr, "ExtractListCDSByLevel: Trying to extract from a NULL List of CDSimplexes\n");
+		exit(1);
+	}
+
 	PLCDSNODEBYLEVEL levelNode = plcdsbylevel->pFirstLCDS;
 	PLCDSNODEBYLEVEL previous = NULL;
 	while (levelNode != NULL) {
@@ -180,7 +185,7 @@ PCDSIMPLEX ExtractListCDSByLevel(PLISTCDSBYLEVEL plcdsbylevel) {
 
 	plcdsbylevel->NElem--;
 
-	if(plcdsbylevel->NElem == 0){
+	if (plcdsbylevel->NElem == 0) {
 		plcdsbylevel->pFirstLCDS = NULL;
 	}
 

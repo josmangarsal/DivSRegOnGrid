@@ -83,6 +83,9 @@ VOID InsertListCDS(PLISTCDS plcds, PCDSIMPLEX pCDS) {
 	if (plcds->pFirstLCDS == NULL)
 		plcds->pFirstLCDS = pnew;
 	else {
+		pnew->pnext = plcds->pFirstLCDS;
+		plcds->pFirstLCDS = pnew;
+		/*
 		paux = plcds->pFirstLCDS;
 		while (paux != NULL) {
 			if (paux->pnext != NULL) {
@@ -107,6 +110,7 @@ VOID InsertListCDS(PLISTCDS plcds, PCDSIMPLEX pCDS) {
 
 			paux = paux->pnext;
 		}
+		*/
 	}
 
 	plcds->NElem++;

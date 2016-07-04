@@ -199,7 +199,7 @@ BOOL IsCDSCovered(PLISTCDS pLCDS, PCDSIMPLEX pCDS, INT NDim, PPREAL ppVCoorT, PP
 			//Overlaping test
 			if (Up == True) {
 				// Center of pCDSaux
-				RegToV(NDim, pCDS->pCentre, pCDS->R, pCDS->Up, ppVCoorT, ppCDSToVMat);
+				RegToV(NDim, pCDSaux->pCentre, pCDSaux->R, pCDSaux->Up, ppVCoorT, ppCDSToVMat);
 
 				for (i = 0; i < NDim; i++) {
 					pCentreCDSaux[i] = 0.0;

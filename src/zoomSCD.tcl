@@ -171,7 +171,7 @@ label .win.fbottom.epsi -textvariable epsi -font $font -bg White
 pack  .win.fbottom.epsi -side right
 pack  .win.fbottom.tepsi -side right
 
-canvas .win.c -width $Z(ancho0) -heigh $Z(alto0) -bg Gray80 -borderwidth 0 \
+canvas .win.c -width $Z(ancho0) -heigh $Z(alto0) -bg White -borderwidth 0 \
           -highlightthickness 0
 #.win.c create rect 0 0 [expr $Z(ancho0)-1] [expr $Z(alto0)-1] -outline Black
 

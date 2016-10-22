@@ -224,7 +224,7 @@ int main(int argc, char *argv[]) {
 	c1 = times(&t1);
 
 	//Generate and store the grid points.------------------------------------------
-	PQueue gridPoints = GenGrid(ceil(1 / Epsilon) + 1, NDim);
+	PQueue gridPoints = GenGrid(Epsilon, NDim);
 
 	PBTV pbtvGridPoints = NULL; //AVL tree of grid points
 	pbtvGridPoints = NewBTV(pbtvGridPoints);

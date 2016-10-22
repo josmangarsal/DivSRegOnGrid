@@ -18,7 +18,7 @@
 #include "Queue.h"
 
 /*----------------------------------------------------------------------------*/
-PQueue GenGrid(int m, int n);
+PQueue GenGrid(double Epsilon, int Dim);
 int numberGridPoints(int m, int n);
 
 #endif /*__GENERATEGRIDPOINTS__*/

@@ -41,7 +41,7 @@ void gridpoints(PQueue gridPoints, int G, int d, int N, int m, double* x) {
 		x[m] = k;
 
 		if(m > 1) {
-			gridpoints(gridPoints, G, d, N-k+1, m-1, x);
+			gridpoints(gridPoints, G, d, N-k, m-1, x);
 		} else {
 			sum = 0.0;
 			for(j = 1; j < d; j++)
@@ -70,7 +70,7 @@ PQueue GenGrid(double e, int d) {
 	for (i = 0; i < d; i++)
 		x[i] = 0.0;
 
-	gridpoints(gridPoints, G, d, G, d-1, x);
+	gridpoints(gridPoints, G, d, G+1, d-1, x);
 
 	free((void*) x);
 

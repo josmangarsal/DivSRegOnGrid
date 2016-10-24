@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "\nEXIT: -d %d -g %d -ep %f -Div %d -Grid %d -Formula %d -Visited %d -Vertices %d -Simplices %lu\n", NDim, InitNGrid, Epsilon,
 				Divide, Count(pbtvGridPoints->pFirstBTVNode, NDim), numberGridPoints(ceil(1 / Epsilon) + 1, NDim),
 				CountVisited(pbtvGridPoints->pFirstBTVNode, NDim), pbtv->MaxNElem, CountersCDS[1]);
-
+				
 		if (mapUSC->size > 0) {
 			fprintf(stderr, "2USC\n");
 			ShowMap(mapUSC);

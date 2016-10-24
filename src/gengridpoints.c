@@ -33,24 +33,29 @@ int numberGridPoints(int m, int n) {
 }
 
 /*---------------------------------------------------------------------------*/
-void gridpoints(PQueue gridPoints, double* P, int d, int G, int i, int c) {
-	int j;
+void gridpoints(PQueue gridPoints, int G, int d, int N, int m, double* x) {
+	int k, j;
+	double sum;
 
-	if (i == d) {
-		P[0] = G - c;
+	for (k = 0; k < N; k++) {
+		x[m] = k;
 
-		double* Q = (double*) GetMem((size_t) d, (size_t) sizeof(double), "GridPoints:Point");
-		for (j = 0; j < d; j++)
-			Q[j] = P[j] / G;
+		if(m > 1) {
+			gridpoints(gridPoints, G, d, N-k+1, m-1, x);
+		} else {
+			sum = 0.0;
+			for(j = 1; j < d; j++)
+				sum += x[j];
+			x[0] = G - sum;
 
-		Push(gridPoints, Q);
-		return;
+			double* gridPoint = (double*) GetMem((size_t) d, (size_t) sizeof(double), "GridPoints:Point");
+			for (j = 0; j < d; j++)
+				gridPoint[j] = x[j] / G;
+
+			Push(gridPoints, gridPoint);
+		}
 	}
 
-	for (j = 0; j <= G - c; j++) {
-		P[i] = j;
-		gridpoints(gridPoints, P, d, G, i + 1, c + j);
-	}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -58,27 +63,16 @@ PQueue GenGrid(double e, int d) {
 	int G = ceil(1/e);
 
 	int i;
-	int j;
 
 	PQueue gridPoints = InitQueue();
 
-	double* initialGrid = (double*) GetMem((size_t) d, (size_t) sizeof(double), "GridPoints:InitialPoint");
+	double* x = (double*) GetMem((size_t) d, (size_t) sizeof(double), "GridPoints:AuxPoint");
 	for (i = 0; i < d; i++)
-		initialGrid[i] = 0.0;
-	initialGrid[1] = 1.0;
-	Push(gridPoints, initialGrid);
+		x[i] = 0.0;
 
-	double* P = (double*) GetMem((size_t) d, (size_t) sizeof(double), "GridPoints:AuxPoint");
-	for (i = 0; i < d; i++)
-		P[i] = 0.0;
+	gridpoints(gridPoints, G, d, G, d-1, x);
 
-	// Para i2 lo hago aqui porque se diferente el bucle
-	for (j = 0; j <= G - 1; j++) {
-		P[1] = j;
-		gridpoints(gridPoints, P, d, G, 2, j);
-	}
-
-	free((void*) P);
+	free((void*) x);
 
 	return gridPoints;
 }

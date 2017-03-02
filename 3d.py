@@ -1,10 +1,44 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import mpl_toolkits.mplot3d as a3
 import matplotlib.colors as colors
 import pylab as pl
 import scipy as sp
 import math
+
+def distVertices(v1, v2):
+    ...
+
+class Simplex:
+    dimension = 0
+    vertices = []
+    size = 0.0
+
+    def __init__(self, dimension, vertices):
+            self.dimension = dimension
+            self.vertices = vertices
+            self.size()
+
+    def size(self):
+        for i in xrange(self.dimension):
+            for j in xrange(self.dimension):
+                ...
+
+        self.size = 1.0
+
+    def LEB(self, v1, v2):
+        ...
+
+        s1 = Simplex(self.dimension, v1)
+        s2 = Simplex(self.dimension, v2)
+
+        return (s1, s2)
+
+    def printSimplex(self):
+        print 'Dim=', self.dimension
+        print 'Vertices=', self.vertices
+        print 'Size=', self.size
+
+ax = a3.Axes3D(pl.figure())
 
 # draw cube
 def drawCube(self):
@@ -17,6 +51,7 @@ def drawCube(self):
 def drawPoint(v):
     ax.scatter(v[0], v[1], v[2], color="g", s=100)
 
+# draw a plain
 def drawPlain(v1, v2, v3):
     vtx = [v1,v2,v3]
     tri = a3.art3d.Poly3DCollection([vtx])
@@ -24,69 +59,54 @@ def drawPlain(v1, v2, v3):
     tri.set_edgecolor('k')
     ax.add_collection3d(tri)
 
+# draw a plain with lines
 def drawLine(v1, v2, v3):
     vtx = [v1,v2,v3,v1]
     tri = a3.art3d.Line3DCollection([vtx])
     tri.set_edgecolor('k')
     ax.add_collection3d(tri)
 
-ax = a3.Axes3D(pl.figure())
+def drawSimplex(simplex3D):
+    simplex3D[3] = simplex3D[3]*-1
+    simplex3D = simplex3D+1
 
-uno = math.sqrt(0.75)
+    for vertice in simplex3D:
+        drawPoint(vertice)
 
-v1 = [0, 0, 0]
-v2 = [1, 0, 0]
-v3 = [0.5, uno, 0]
-v4 = [0.5, uno/2, uno]
+    drawLine(simplex3D[0], simplex3D[1], simplex3D[2])
+    drawLine(simplex3D[0], simplex3D[1], simplex3D[3])
+    drawLine(simplex3D[0], simplex3D[2], simplex3D[3])
+    drawLine(simplex3D[1], simplex3D[2], simplex3D[3])
 
-drawLine(v1, v2, v3) # Base
-drawLine(v1, v2, v4)
-drawLine(v2, v3, v4)
-drawLine(v1, v3, v4)
+def to3D(simplex):
+    matrix3D = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+            [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+            [0, -2/math.sqrt(6), 1/math.sqrt(12)],
+            [0, 0, -3/math.sqrt(12)]]
 
-drawPoint(v1)
-drawPoint(v2)
-drawPoint(v3)
-drawPoint(v4)
+    if len(simplex) != 4:
+        print 'Error: Vertices is not a 4 dimension simplex'
 
-v1 = [0, 0, 0]
-v2 = [0.5, 0, 0]
-v3 = [0.5/2, uno/2, 0]
-v4 = [0.5/2, uno/2/2, uno/2]
+    return np.matmul(simplex,matrix3D)
 
-drawPlain(v1, v2, v3)
-drawPlain(v1, v2, v4)
-drawPlain(v2, v3, v4)
-drawPlain(v1, v3, v4)
+simplexInicial = [[1,0,0,0],
+                [0,1,0,0],
+                [0,0,1,0],
+                [0,0,0,1]]
 
-v1 = [0.5, 0, 0]
-v2 = [1, 0, 0]
-v3 = [0.5+0.5/2, uno/2, 0]
-v4 = [0.5+0.5/2, uno/2/2, uno/2]
+sInicial = Simplex(4, simplexInicial)
 
-drawPlain(v1, v2, v3)
-drawPlain(v1, v2, v4)
-drawPlain(v2, v3, v4)
-drawPlain(v1, v3, v4)
+sInicial.printSimplex()
 
-v1 = [0.5/2, uno/2, 0]
-v2 = [0.5+0.5/2, uno/2, 0]
-v3 = [0.5, uno, 0]
-v4 = [0.5, uno/2+uno/2/2, uno/2]
+simplex3D = to3D(simplexInicial)
+drawSimplex(simplex3D)
 
-drawPlain(v1, v2, v3)
-drawPlain(v1, v2, v4)
-drawPlain(v2, v3, v4)
-drawPlain(v1, v3, v4)
+simplex1 = [[0.5,0.5,0,0],
+            [0.5,0.5,0,0],
+            [0,0,1,0],
+            [0,0,0,1]]
 
-v1 = [0.5/2, uno/2/2, uno/2]
-v2 = [0.5+0.5/2, uno/2/2, uno/2]
-v3 = [0.5, uno/2+uno/2/2, uno/2]
-v4 = [0.5, uno/2, uno]
-
-drawPlain(v1, v2, v3)
-drawPlain(v1, v2, v4)
-drawPlain(v2, v3, v4)
-drawPlain(v1, v3, v4)
+simplex1 = to3D(simplex1)
+drawSimplex(simplex1)
 
 pl.show()

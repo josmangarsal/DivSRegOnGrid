@@ -148,6 +148,10 @@ def main():
     simplex_inicial = Simplex(initial_unit_simplex_vertices)
     working_list.append(simplex_inicial)
 
+    vertices = to_3d(simplex_inicial)
+    for vertex in vertices:
+        draw_point(vertex)
+
     for simplex in working_list:
         draw_simplex(to_3d(simplex))
         (vertices1, vertices2) = simplex.leb()
@@ -158,6 +162,7 @@ def main():
         working_list.append(Simplex(vertices1))
         working_list.append(Simplex(vertices2))
 
+    pl.axis('off')
     pl.show()
 
 if __name__ == '__main__':

@@ -102,8 +102,8 @@ def draw_simplex(simplex3d):
     #simplex3d[3] = simplex3d[3]*-1
     #simplex3d = simplex3d+1
 
-    for vertex in simplex3d:
-        draw_point(vertex)
+    #for vertex in simplex3d:
+    #    draw_point(vertex)
 
     draw_line(simplex3d[0], simplex3d[1], simplex3d[2])
     draw_line(simplex3d[0], simplex3d[1], simplex3d[3])

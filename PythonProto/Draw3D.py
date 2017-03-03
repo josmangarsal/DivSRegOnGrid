@@ -122,6 +122,19 @@ def to_3d(simplex):
 
     return np.matmul(simplex.vertices, matrix_to_3d)
 
+# TODO
+def to_2d(simplex):
+    """3 dimension simplex to 2 dimension representation"""
+    matrix_to_2d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, -2/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, 0, -3/math.sqrt(12)]]
+
+    if len(simplex.vertices) != 3:
+        print 'Error: Vertices is not a 3 dimension simplex'
+
+    return np.matmul(simplex.vertices, matrix_to_2d)
+
 def main():
     """Main"""
 

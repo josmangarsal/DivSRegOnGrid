@@ -7,7 +7,7 @@ import scipy as sp
 
 #LADOS_SIMPLEX = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120]
 EPS = 0.5
-DIM = 4
+DIM = 3
 
 class Simplex(object):
     """Simplex"""
@@ -122,22 +122,34 @@ def to_3d(simplex):
 
     return np.matmul(simplex.vertices, matrix_to_3d)
 
-# TODO
-def to_2d(simplex):
+def draw_2d(simplex):
     """3 dimension simplex to 2 dimension representation"""
-    matrix_to_2d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
-                    [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
-                    [0, -2/math.sqrt(6), 1/math.sqrt(12)],
-                    [0, 0, -3/math.sqrt(12)]]
+    matrix_to_2d = [[1/math.sqrt(2), 1/math.sqrt(6)],
+                    [-1/math.sqrt(2), 1/math.sqrt(6)],
+                    [0, -2/math.sqrt(6)]]
 
     if len(simplex.vertices) != 3:
         print 'Error: Vertices is not a 3 dimension simplex'
 
-    return np.matmul(simplex.vertices, matrix_to_2d)
+    vertices = np.matmul(simplex.vertices, matrix_to_2d)
 
-def main():
-    """Main"""
+    vertices_3d = []
+    for vertex in vertices:
+        vertex_3d = []
+        vertex_3d.append(vertex[0])
+        vertex_3d.append(vertex[1])
+        vertex_3d.append(0.0)
+        vertices_3d.append(vertex_3d)
 
+        draw_point(vertex_3d)
+
+    vtx = [vertices_3d[0], vertices_3d[1], vertices_3d[2], vertices_3d[0]]
+    tri = a3.art3d.Line3DCollection([vtx])
+    tri.set_edgecolor('k')
+    GRAPHIC.add_collection3d(tri)
+
+def main3d():
+    """Main""" 
     working_list = []
 
     initial_unit_simplex_vertices = [[1, 0, 0, 0],
@@ -165,5 +177,31 @@ def main():
     pl.axis('off')
     pl.show()
 
+def main2d():
+    """Main"""
+    working_list = []
+
+    initial_unit_simplex_vertices = [[1, 0, 0],
+                                     [0, 1, 0],
+                                     [0, 0, 1]]
+
+    simplex_inicial = Simplex(initial_unit_simplex_vertices)
+    working_list.append(simplex_inicial)
+
+    draw_2d(simplex_inicial)
+
+    for simplex in working_list:
+        draw_2d(simplex)
+        (vertices1, vertices2) = simplex.leb()
+
+        if vertices1 == 0 and vertices2 == 0:
+            continue
+
+        working_list.append(Simplex(vertices1))
+        working_list.append(Simplex(vertices2))
+
+    pl.axis('off')
+    pl.show()
+
 if __name__ == '__main__':
-    main()
+    main2d()

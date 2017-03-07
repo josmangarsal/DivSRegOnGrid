@@ -1,5 +1,6 @@
 """2D and 3D simplex division"""
 
+import sys, getopt
 import math
 import numpy as np
 import mpl_toolkits.mplot3d as a3
@@ -10,12 +11,10 @@ import scipy as sp
 #LADOS_SIMPLEX = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120]
 EPS = 0.7
 DIM = 3
+DIV = '2usc'
 
 class Simplex(object):
     """Simplex"""
-    vertices = []
-    longest_edge = (0, (0, 0))
-    distances = []
 
     def __init__(self, vertices):
         self.vertices = vertices
@@ -80,19 +79,22 @@ class Simplex(object):
 
 class CDSimplex(object):
     """CD Simplex"""
-    centre = []
-    radius = 0.0
-    size = 0.0
-    up_orientation = True # True is normal orientation
+    
 
     def __init__(self, centre, radius, size, up_orientation):
         self.centre = centre
         self.radius = radius
         self.size = size
-        self.up_orientation = up_orientation
+        self.up_orientation = up_orientation # True is normal orientation
 
     def divide_2usc(self, red_factor):
         """2USC regular division"""
+        if self.size <= EPS:
+            return None
+
+        new_radius = self.radius * red_factor
+        new_size = self.size * red_factor
+
         new_simplices = []
         for j in xrange(DIM): # Number of new simplices
             new_center = []
@@ -108,23 +110,35 @@ class CDSimplex(object):
             else:
                 new_center[j] -= self.radius * (1.0 - red_factor)
 
-            new_simplices.append(CDSimplex(new_center, red_factor * self.radius,
-                                           red_factor * self.size, True))
+            new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
 
         return new_simplices
 
     def divide_2musc(self, red_factor):
         """2MUSC regular division"""
+        if self.size <= EPS:
+            return None
+
         new_2nusc_simplex = None
 
         beta = ((DIM - 1.0) / DIM)
 
         if red_factor < beta:
             up_down_ratio = DIM * (1.0 - red_factor) - 1.0
-            new_2nusc_simplex = CDSimplex(self.centre, up_down_ratio * self.radius,
-                                          up_down_ratio * self.size, False)
+
+            new_radius = self.radius * up_down_ratio
+            new_size = self.size * up_down_ratio
+
+            new_centre = []
+            for i in self.centre:
+                new_centre.append(i)
+
+            new_2nusc_simplex = CDSimplex(new_centre, new_radius, new_size, False)
 
         new_2usc_simplices = self.divide_2usc(red_factor)
+
+        if new_2usc_simplices is None:
+            return None
 
         if new_2nusc_simplex is not None:
             new_2usc_simplices.append(new_2nusc_simplex)
@@ -439,85 +453,94 @@ def vertices_to_cdsimplex(vertices):
 
     return CDSimplex(centre, radius, size, True)
 
-def main2usc3d():
+def main_regular():
     """Main"""
-    global DIM
-    DIM = 4
-    initial_unit_simplex_vertices = [[1, 0, 0, 0],
-                                     [0, 1, 0, 0],
-                                     [0, 0, 1, 0],
-                                     [0, 0, 0, 1]]
+    working_list = []
+    initial_unit_simplex_vertices = []
+
+    for i in xrange(DIM):
+        coor = []
+        for j in xrange(DIM):
+            if i == j:
+                coor.append(1.0)
+            else:
+                coor.append(0.0)
+        initial_unit_simplex_vertices.append(coor)
+
     simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
-    simplex_cdinicial.print_cdsimplex()
-    draw_cdsimplex_3d(simplex_cdinicial)
 
-    beta = (DIM - 1.0) / DIM
+    beta = 0.0
+    rho = 0.0
 
-    cdsimplices = simplex_cdinicial.divide_2usc(beta)
+    if DIV == '2usc':
+        beta = (DIM - 1.0) / DIM
 
-    for cdsimplex in cdsimplices:
-        draw_cdsimplex_3d(cdsimplex)
+    if DIV == '2musc':
+        rho = (DIM - 2.0) / (DIM - 1.0)
+
+    working_list.append(simplex_cdinicial)
+
+    for cdsimplex in working_list:
+        if DIM == 4:
+            draw_cdsimplex_3d(cdsimplex)
+        if DIM == 3:
+            draw_cdsimplex_2d(cdsimplex)
+
+        cdsimplices = None
+        if DIV == '2usc':
+            cdsimplices = cdsimplex.divide_2usc(beta)
+        if DIV == '2musc':
+            cdsimplices = simplex_cdinicial.divide_2musc(rho)
+
+        if cdsimplices is not None:
+            for new_cdsimplex in cdsimplices:
+                working_list.append(new_cdsimplex)
 
     show_draw()
 
-def main2usc2d():
-    """Main"""
+def menu(argument):
+    switcher = {
+        ('leb', 3): mainleb2d,
+        ('leb', 4): mainleb3d,
+        ('2usc', 3): main_regular,
+        ('2usc', 4): main_regular,
+        ('2musc', 3): main_regular,
+        ('2musc', 4): main_regular,
+    }
+
+    func = switcher.get(argument, lambda: "nothing")
+
+    return func()
+
+def main(argv):
     global DIM
-    DIM = 3
-    initial_unit_simplex_vertices = [[1, 0, 0],
-                                     [0, 1, 0],
-                                     [0, 0, 1]]
-    simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
-    draw_cdsimplex_2d(simplex_cdinicial)
+    global EPS
+    global DIV
 
-    beta = (DIM - 1.0) / DIM
-
-    cdsimplices = simplex_cdinicial.divide_2usc(beta)
-
-    for cdsimplex in cdsimplices:
-        draw_cdsimplex_2d(cdsimplex)
-
-    show_draw()
-
-def main2musc3d():
-    """Main"""
-    global DIM
-    DIM = 4
-    initial_unit_simplex_vertices = [[1, 0, 0, 0],
-                                     [0, 1, 0, 0],
-                                     [0, 0, 1, 0],
-                                     [0, 0, 0, 1]]
-    simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
-    draw_cdsimplex_3d(simplex_cdinicial)
-
-    rho = (DIM - 2.0) / (DIM - 1.0)
-
-    cdsimplices = simplex_cdinicial.divide_2musc(rho)
-
-    for cdsimplex in cdsimplices:
-        draw_cdsimplex_3d(cdsimplex)
-
-    show_draw()
-
-def main2musc2d():
-    """Main"""
-    global DIM
-    DIM = 3
-    initial_unit_simplex_vertices = [[1, 0, 0, 0],
-                                     [0, 1, 0, 0],
-                                     [0, 0, 1, 0],
-                                     [0, 0, 0, 1]]
-    simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
-    draw_cdsimplex_2d(simplex_cdinicial)
-
-    rho = (DIM - 2.0) / (DIM - 1.0)
-
-    cdsimplices = simplex_cdinicial.divide_2musc(rho)
-
-    for cdsimplex in cdsimplices:
-        draw_cdsimplex_2d(cdsimplex)
-
-    show_draw()
+    try:
+        opts, args = getopt.getopt(argv, "D:d:e:")
+    except getopt.GetoptError:
+        print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon>'
+        print 'Division methods: leb, 2usc or 2musc'
+        sys.exit(2)
+    print opts
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            print 'Draw2d.py -<division_method> -d <dimension> -e <epsilon>'
+            print 'Division methods: leb, 2usc or 2musc'
+            sys.exit(1)
+        elif opt == "-d":
+            DIM = int(arg)
+        elif opt == "-e":
+            EPS = float(arg)
+        elif opt == "-D":
+            if arg in ('leb', '2usc', '2musc'):
+                DIV = arg
+            else:
+                print 'Division methods: leb, 2usc or 2musc'
+                sys.exit(1)
+    
+    menu((DIV, DIM))
 
 if __name__ == '__main__':
-    main2musc2d()
+    main(sys.argv[1:])

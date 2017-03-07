@@ -499,5 +499,25 @@ def main2musc3d():
 
     show_draw()
 
+def main2musc2d():
+    """Main"""
+    global DIM
+    DIM = 3
+    initial_unit_simplex_vertices = [[1, 0, 0, 0],
+                                     [0, 1, 0, 0],
+                                     [0, 0, 1, 0],
+                                     [0, 0, 0, 1]]
+    simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
+    draw_cdsimplex_3d(simplex_cdinicial)
+
+    rho = (DIM - 2.0) / (DIM - 1.0)
+
+    cdsimplices = simplex_cdinicial.divide_2musc(rho)
+
+    for cdsimplex in cdsimplices:
+        draw_cdsimplex_3d(cdsimplex)
+
+    show_draw()
+
 if __name__ == '__main__':
-    main2musc3d()
+    main2musc2d()

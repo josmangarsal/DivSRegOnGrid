@@ -383,7 +383,7 @@ def draw_2d_puntos(simplex):
 # Mains for testing
 
 def main_leb():
-    """Main"""
+    """Main LEB"""
     working_list = []
 
     initial_unit_simplex_vertices = []
@@ -470,7 +470,62 @@ def vertices_to_cdsimplex(vertices):
     return CDSimplex(centre, radius, size, True)
 
 def main_rbr():
-    """Main"""
+    """Main RbR"""
+    working_list = []
+    initial_unit_simplex_vertices = []
+
+    for i in xrange(DIM):
+        coor = []
+        for j in xrange(DIM):
+            if i == j:
+                coor.append(1.0)
+            else:
+                coor.append(0.0)
+        initial_unit_simplex_vertices.append(coor)
+
+    simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
+
+    if DRAW:
+        if DIM == 4:
+            draw_cdsimplex_3d_init(simplex_cdinicial)
+        elif DIM == 3:
+            draw_cdsimplex_2d_init(simplex_cdinicial)
+
+        if PAUSE != 0.0:
+            pl.pause(PAUSE)
+
+    beta = 0.0
+    rho = 0.0
+
+    if DIV == '2usc':
+        beta = (DIM - 1.0) / DIM
+    elif DIV == '2musc':
+        rho = (DIM - 2.0) / (DIM - 1.0)
+
+    working_list.append(simplex_cdinicial)
+
+    for cdsimplex in working_list:
+        if DRAW:
+            if DIM == 4:
+                draw_cdsimplex_3d(cdsimplex)
+            elif DIM == 3:
+                draw_cdsimplex_2d(cdsimplex)
+
+            if PAUSE != 0.0:
+                pl.pause(PAUSE)
+
+        cdsimplices = None
+        if DIV == '2usc':
+            cdsimplices = cdsimplex.divide_2usc(beta)
+        elif DIV == '2musc':
+            cdsimplices = cdsimplex.divide_2musc(rho)
+
+        if cdsimplices is not None:
+            for new_cdsimplex in cdsimplices:
+                working_list.append(new_cdsimplex)
+
+def main_musc():
+    """Main mUSC"""
     working_list = []
     initial_unit_simplex_vertices = []
 
@@ -592,4 +647,5 @@ def main(argv):
         pl.show()
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    #main(sys.argv[1:])
+    main_musc()

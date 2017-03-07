@@ -12,6 +12,8 @@ import scipy as sp
 EPS = 0.7
 DIM = 3
 DIV = '2usc'
+DRAW = True
+PAUSE = 0
 
 class Simplex(object):
     """Simplex"""
@@ -79,7 +81,6 @@ class Simplex(object):
 
 class CDSimplex(object):
     """CD Simplex"""
-    
 
     def __init__(self, centre, radius, size, up_orientation):
         self.centre = centre
@@ -121,9 +122,7 @@ class CDSimplex(object):
 
         new_2nusc_simplex = None
 
-        beta = ((DIM - 1.0) / DIM)
-
-        if red_factor < beta:
+        if red_factor < ((DIM - 1.0) / DIM):
             up_down_ratio = DIM * (1.0 - red_factor) - 1.0
 
             new_radius = self.radius * up_down_ratio
@@ -340,12 +339,6 @@ def draw_2d_puntos(simplex):
     tri.set_edgecolor('k')
     GRAPHIC.add_collection3d(tri)
 
-def show_draw():
-    """Show draw"""
-    GRAPHIC.view_init(elev=156., azim=100)
-    pl.axis('off')
-    pl.show()
-
 # Mains for testing
 
 def mainleb3d():
@@ -376,8 +369,6 @@ def mainleb3d():
         working_list.append(Simplex(vertices1))
         working_list.append(Simplex(vertices2))
 
-    show_draw()
-
 def mainleb2d():
     """Main"""
     global DIM
@@ -402,8 +393,6 @@ def mainleb2d():
 
         working_list.append(Simplex(vertices1))
         working_list.append(Simplex(vertices2))
-
-    show_draw()
 
 def dist_points(point1, point2):
     """Distance between two vertices"""
@@ -474,31 +463,33 @@ def main_regular():
 
     if DIV == '2usc':
         beta = (DIM - 1.0) / DIM
-
-    if DIV == '2musc':
+    elif DIV == '2musc':
         rho = (DIM - 2.0) / (DIM - 1.0)
 
     working_list.append(simplex_cdinicial)
 
     for cdsimplex in working_list:
-        if DIM == 4:
-            draw_cdsimplex_3d(cdsimplex)
-        if DIM == 3:
-            draw_cdsimplex_2d(cdsimplex)
+        if DRAW:
+            if DIM == 4:
+                draw_cdsimplex_3d(cdsimplex)
+            elif DIM == 3:
+                draw_cdsimplex_2d(cdsimplex)
+
+            if PAUSE != 0.0:
+                pl.pause(PAUSE)
 
         cdsimplices = None
         if DIV == '2usc':
             cdsimplices = cdsimplex.divide_2usc(beta)
-        if DIV == '2musc':
-            cdsimplices = simplex_cdinicial.divide_2musc(rho)
+        elif DIV == '2musc':
+            cdsimplices = cdsimplex.divide_2musc(rho)
 
         if cdsimplices is not None:
             for new_cdsimplex in cdsimplices:
                 working_list.append(new_cdsimplex)
 
-    show_draw()
-
 def menu(argument):
+    """Menu"""
     switcher = {
         ('leb', 3): mainleb2d,
         ('leb', 4): mainleb3d,
@@ -512,23 +503,29 @@ def menu(argument):
 
     return func()
 
+def help_commands():
+    """Command help"""
+    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time>'
+    print 'Division methods: leb, 2usc or 2musc'
+    print 'Time: 0 to show final result, 0.05 to show step by step or -1 to not to draw'
+    sys.exit(2)
+
 def main(argv):
+    """Main"""
     global DIM
     global EPS
     global DIV
+    global PAUSE
+    global DRAW
 
     try:
-        opts, args = getopt.getopt(argv, "D:d:e:")
+        opts, args = getopt.getopt(argv, "D:d:e:P:")
     except getopt.GetoptError:
-        print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon>'
-        print 'Division methods: leb, 2usc or 2musc'
-        sys.exit(2)
+        help_commands()
     print opts
     for opt, arg in opts:
         if opt in ('-h', '--help'):
-            print 'Draw2d.py -<division_method> -d <dimension> -e <epsilon>'
-            print 'Division methods: leb, 2usc or 2musc'
-            sys.exit(1)
+            help_commands()
         elif opt == "-d":
             DIM = int(arg)
         elif opt == "-e":
@@ -539,8 +536,24 @@ def main(argv):
             else:
                 print 'Division methods: leb, 2usc or 2musc'
                 sys.exit(1)
-    
+        elif opt == "-P":
+            PAUSE = float(arg)
+            if PAUSE == -1:
+                DRAW = False
+
+
+    if DRAW:
+        GRAPHIC.view_init(elev=156., azim=100)
+        pl.axis('off')
+        if PAUSE != 0.0:
+            pl.ion()
+
     menu((DIV, DIM))
+
+    if DRAW:
+        if PAUSE != 0.0:
+            pl.ioff()
+        pl.show()
 
 if __name__ == '__main__':
     main(sys.argv[1:])

@@ -8,12 +8,26 @@ import matplotlib.colors as colors
 import pylab as pl
 import scipy as sp
 
-#LADOS_SIMPLEX = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120]
+# GLOBAL VARIABLES
+
 EPS = 0.7
 DIM = 3
 DIV = '2usc'
 DRAW = True
 PAUSE = 0
+
+# GLOBAL METHODS
+
+def dist_points(point1, point2):
+    """Distance between two vertices"""
+    sum = 0.0
+
+    for i in xrange(DIM):
+        sum = sum + math.pow(point2[i] - point1[i], 2)
+
+    return math.sqrt(sum)
+
+# CLASSES
 
 class Simplex(object):
     """Simplex"""
@@ -28,20 +42,10 @@ class Simplex(object):
         for i in xrange(DIM):
             for j in range(i+1, DIM):
                 self.distances.append(
-                    (self.dist_vertices(self.vertices[i], self.vertices[j]),
-                     (i, j)))
+                    (dist_points(self.vertices[i], self.vertices[j]), (i, j)))
 
         self.distances.sort(key=lambda x: (-x[0], x[1][0], x[1][0]))
         self.longest_edge = self.distances[0]
-
-    def dist_vertices(self, vertice1, vertice2):
-        """Distance between two vertices"""
-        sum = 0.0
-
-        for i in xrange(DIM):
-            sum = sum + math.pow(vertice2[i] - vertice1[i], 2)
-
-        return math.sqrt(sum)
 
     def copy_vertices(self):
         """Copy vertices to child"""
@@ -152,7 +156,31 @@ class CDSimplex(object):
         print 'Size=', self.size
         print 'Up=', self.up_orientation
 
-# Drawing
+    def to_vertices(self):
+        """CDStoV"""
+        matrix_to_vertices = []
+        for i in xrange(DIM):
+            coor = []
+            for j in xrange(DIM):
+                if i == j:
+                    coor.append((DIM - 1.0) / DIM)
+                else:
+                    coor.append(-1.0 / DIM)
+            matrix_to_vertices.append(coor)
+
+        vertices = []
+        for i in xrange(DIM):
+            coor = []
+            for j in xrange(DIM):
+                if self.up_orientation is True:
+                    coor.append(self.centre[j] + self.radius * matrix_to_vertices[i][j])
+                else:
+                    coor.append(self.centre[j] - self.radius * matrix_to_vertices[i][j])
+            vertices.append(coor)
+
+        return vertices
+
+# DRAWING
 
 GRAPHIC = a3.Axes3D(pl.figure())
 
@@ -196,31 +224,7 @@ def draw_simplex_3d_vertices(simplex3d):
     for vertex in simplex3d:
         draw_point(vertex, 'g')
 
-def cdsimplex_to_vertices(cdsimplex):
-    """CDStoV"""
-    matrix_to_vertices = []
-    for i in xrange(DIM):
-        coor = []
-        for j in xrange(DIM):
-            if i == j:
-                coor.append((DIM - 1.0) / DIM)
-            else:
-                coor.append(-1.0 / DIM)
-        matrix_to_vertices.append(coor)
-
-    vertices = []
-    for i in xrange(DIM):
-        coor = []
-        for j in xrange(DIM):
-            if cdsimplex.up_orientation is True:
-                coor.append(cdsimplex.centre[j] + cdsimplex.radius * matrix_to_vertices[i][j])
-            else:
-                coor.append(cdsimplex.centre[j] - cdsimplex.radius * matrix_to_vertices[i][j])
-        vertices.append(coor)
-
-    return vertices
-
-def draw_cdsimplex_3d(cdsimplex):
+def draw_cdsimplex_3d_init(cdsimplex):
     """Draw cd simplex using centre, radius and vertices"""
     matrix_to_3d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
                     [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
@@ -228,10 +232,9 @@ def draw_cdsimplex_3d(cdsimplex):
                     [0, 0, -3/math.sqrt(12)]]
 
     centre_3d = np.matmul(cdsimplex.centre, matrix_to_3d)
-
     draw_point(centre_3d, 'blue')
 
-    vertices = cdsimplex_to_vertices(cdsimplex)
+    vertices = cdsimplex.to_vertices()
 
     vertices_3d = np.matmul(vertices, matrix_to_3d)
 
@@ -243,7 +246,23 @@ def draw_cdsimplex_3d(cdsimplex):
     for vertex in vertices_3d:
         draw_point(vertex, 'red')
 
-def draw_cdsimplex_2d(cdsimplex):
+def draw_cdsimplex_3d(cdsimplex):
+    """Draw cd simplex using centre, radius and vertices"""
+    matrix_to_3d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, -2/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, 0, -3/math.sqrt(12)]]
+
+    vertices = cdsimplex.to_vertices()
+
+    vertices_3d = np.matmul(vertices, matrix_to_3d)
+
+    draw_line(vertices_3d[0], vertices_3d[1], vertices_3d[2])
+    draw_line(vertices_3d[0], vertices_3d[1], vertices_3d[3])
+    draw_line(vertices_3d[0], vertices_3d[2], vertices_3d[3])
+    draw_line(vertices_3d[1], vertices_3d[2], vertices_3d[3])
+
+def draw_cdsimplex_2d_init(cdsimplex):
     """Draw cd simplex using centre, radius and vertices"""
     matrix_to_2d = [[1/math.sqrt(2), 1/math.sqrt(6)],
                     [-1/math.sqrt(2), 1/math.sqrt(6)],
@@ -254,7 +273,7 @@ def draw_cdsimplex_2d(cdsimplex):
 
     draw_point(centre_3d, 'blue')
 
-    vertices = cdsimplex_to_vertices(cdsimplex)
+    vertices = cdsimplex.to_vertices()
 
     np_vertices_3d = np.matmul(vertices, matrix_to_2d)
     vertices_3d = []
@@ -267,6 +286,28 @@ def draw_cdsimplex_2d(cdsimplex):
 
     for vertex in vertices_3d:
         draw_point(vertex, 'red')
+
+    vtx = [vertices_3d[0], vertices_3d[1], vertices_3d[2], vertices_3d[0]]
+    tri = a3.art3d.Line3DCollection([vtx])
+    tri.set_edgecolor('k')
+    GRAPHIC.add_collection3d(tri)
+
+def draw_cdsimplex_2d(cdsimplex):
+    """Draw cd simplex using centre, radius and vertices"""
+    matrix_to_2d = [[1/math.sqrt(2), 1/math.sqrt(6)],
+                    [-1/math.sqrt(2), 1/math.sqrt(6)],
+                    [0, -2/math.sqrt(6)]]
+
+    vertices = cdsimplex.to_vertices()
+
+    np_vertices_3d = np.matmul(vertices, matrix_to_2d)
+    vertices_3d = []
+    for vertex in np_vertices_3d:
+        vertex_3d = []
+        vertex_3d.append(vertex[0])
+        vertex_3d.append(vertex[1])
+        vertex_3d.append(0.0)
+        vertices_3d.append(vertex_3d)
 
     vtx = [vertices_3d[0], vertices_3d[1], vertices_3d[2], vertices_3d[0]]
     tri = a3.art3d.Line3DCollection([vtx])
@@ -341,67 +382,53 @@ def draw_2d_puntos(simplex):
 
 # Mains for testing
 
-def mainleb3d():
+def main_leb():
     """Main"""
-    global DIM
-    DIM = 4
     working_list = []
 
-    initial_unit_simplex_vertices = [[1, 0, 0, 0],
-                                     [0, 1, 0, 0],
-                                     [0, 0, 1, 0],
-                                     [0, 0, 0, 1]]
-
-    simplex_inicial = Simplex(initial_unit_simplex_vertices)
-    working_list.append(simplex_inicial)
-
-    vertices = to_3d(simplex_inicial)
-    for vertex in vertices:
-        draw_point(vertex, 'g')
-
-    for simplex in working_list:
-        draw_simplex(simplex)
-        (vertices1, vertices2) = simplex.leb()
-
-        if vertices1 == 0 and vertices2 == 0:
-            continue
-
-        working_list.append(Simplex(vertices1))
-        working_list.append(Simplex(vertices2))
-
-def mainleb2d():
-    """Main"""
-    global DIM
-    DIM = 3
-    working_list = []
-
-    initial_unit_simplex_vertices = [[1, 0, 0],
-                                     [0, 1, 0],
-                                     [0, 0, 1]]
-
-    simplex_inicial = Simplex(initial_unit_simplex_vertices)
-    working_list.append(simplex_inicial)
-
-    draw_2d_puntos(simplex_inicial)
-
-    for simplex in working_list:
-        draw_2d(simplex)
-        (vertices1, vertices2) = simplex.leb()
-
-        if vertices1 == 0 and vertices2 == 0:
-            continue
-
-        working_list.append(Simplex(vertices1))
-        working_list.append(Simplex(vertices2))
-
-def dist_points(point1, point2):
-    """Distance between two vertices"""
-    sum = 0.0
-
+    initial_unit_simplex_vertices = []
     for i in xrange(DIM):
-        sum = sum + math.pow(point2[i] - point1[i], 2)
+        coor = []
+        for j in xrange(DIM):
+            if i == j:
+                coor.append(1.0)
+            else:
+                coor.append(0.0)
+        initial_unit_simplex_vertices.append(coor)
 
-    return math.sqrt(sum)
+    simplex_inicial = Simplex(initial_unit_simplex_vertices)
+    working_list.append(simplex_inicial)
+
+    if DRAW:
+        if DIM == 3:
+            draw_2d_puntos(simplex_inicial)
+        elif DIM == 4:
+            vertices = to_3d(simplex_inicial)
+            for vertex in vertices:
+                draw_point(vertex, 'g')
+
+        if PAUSE != 0.0:
+            pl.pause(PAUSE)
+
+    for simplex in working_list:
+        if DRAW:
+            if DIM == 3:
+                draw_2d(simplex)
+            elif DIM == 4:
+                draw_simplex(simplex)
+
+            if PAUSE != 0.0:
+                pl.pause(PAUSE)
+
+        (vertices1, vertices2) = simplex.leb()
+
+        if vertices1 == 0 and vertices2 == 0:
+            continue
+
+        working_list.append(Simplex(vertices1))
+        working_list.append(Simplex(vertices2))
+
+# RbR general methods
 
 def initial_radius():
     """initial_radius"""
@@ -442,7 +469,7 @@ def vertices_to_cdsimplex(vertices):
 
     return CDSimplex(centre, radius, size, True)
 
-def main_regular():
+def main_rbr():
     """Main"""
     working_list = []
     initial_unit_simplex_vertices = []
@@ -457,6 +484,15 @@ def main_regular():
         initial_unit_simplex_vertices.append(coor)
 
     simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
+
+    if DRAW:
+        if DIM == 4:
+            draw_cdsimplex_3d_init(simplex_cdinicial)
+        elif DIM == 3:
+            draw_cdsimplex_2d_init(simplex_cdinicial)
+
+        if PAUSE != 0.0:
+            pl.pause(PAUSE)
 
     beta = 0.0
     rho = 0.0
@@ -491,12 +527,12 @@ def main_regular():
 def menu(argument):
     """Menu"""
     switcher = {
-        ('leb', 3): mainleb2d,
-        ('leb', 4): mainleb3d,
-        ('2usc', 3): main_regular,
-        ('2usc', 4): main_regular,
-        ('2musc', 3): main_regular,
-        ('2musc', 4): main_regular,
+        ('leb', 3): main_leb,
+        ('leb', 4): main_leb,
+        ('2usc', 3): main_rbr,
+        ('2usc', 4): main_rbr,
+        ('2musc', 3): main_rbr,
+        ('2musc', 4): main_rbr,
     }
 
     func = switcher.get(argument, lambda: "nothing")

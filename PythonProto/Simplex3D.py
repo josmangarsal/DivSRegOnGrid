@@ -10,7 +10,7 @@ import scipy as sp
 
 # GLOBAL VARIABLES
 
-EPS = 0.7
+EPS = 0.9
 DIM = 3
 DIV = '2usc'
 DRAW = True
@@ -166,19 +166,36 @@ class CDSimplex(object):
         if self.size <= EPS:
             return None
 
-        self.musc_centers()
-        return None
+        matrix_to_vertices = [] # D (d1..dn)
+        for i in xrange(DIM):
+            coor = []
+            for j in xrange(DIM):
+                if i == j:
+                    coor.append((DIM - 1.0) / DIM)
+                else:
+                    coor.append(-1.0 / DIM)
+            matrix_to_vertices.append(coor)
 
-        number_new_simplices = math.factorial(simplices_per_edge + DIM - 2) / (math.factorial(simplices_per_edge - 1) * math.factorial(DIM - 3))
+        t_ns = self.musc_centers() # t1..tn
+
+        #number_new_simplices = math.factorial(simplices_per_edge + DIM - 2) / (math.factorial(simplices_per_edge - 1) * math.factorial(DIM - 3))
 
         new_radius = self.radius * red_factor
         new_size = self.size * red_factor
 
         new_simplices = []
-        for i in xrange(number_new_simplices): # Number of new simplices
+        for t_n in t_ns:
             new_center = []
 
-            new_center.append(0.0)
+            for i in range(DIM):
+                sumita = 0
+                j = 0
+                for elem in t_n:
+                    sumita += elem * matrix_to_vertices[j][i]
+                    j += 1
+
+                center = self.centre[i] + (((1 - red_factor) * self.radius) / (simplices_per_edge - 1)) * sumita
+                new_center.append(center)
 
             new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
 
@@ -598,7 +615,7 @@ def main_musc():
             pl.pause(PAUSE)
 
     m_simplices_per_edge = 4 # Simplices per edge
-    reduction_factor = (DIM - 1) / (m_simplices_per_edge - DIM - 2)
+    reduction_factor = (DIM - 1.0) / (m_simplices_per_edge + DIM - 2.0)
 
     working_list.append(simplex_cdinicial)
 
@@ -611,6 +628,8 @@ def main_musc():
 
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
+
+        cdsimplex.print_cdsimplex()
 
         cdsimplices = cdsimplex.divide_musc(m_simplices_per_edge, reduction_factor)
 
@@ -627,6 +646,7 @@ def menu(argument):
         ('2usc', 4): main_rbr,
         ('2musc', 3): main_rbr,
         ('2musc', 4): main_rbr,
+        ('musc', 3): main_musc,
     }
 
     func = switcher.get(argument, lambda: "nothing")
@@ -661,7 +681,7 @@ def main(argv):
         elif opt == "-e":
             EPS = float(arg)
         elif opt == "-D":
-            if arg in ('leb', '2usc', '2musc'):
+            if arg in ('leb', '2usc', '2musc', 'musc'):
                 DIV = arg
             else:
                 print 'Division methods: leb, 2usc or 2musc'
@@ -673,7 +693,10 @@ def main(argv):
 
 
     if DRAW:
-        GRAPHIC.view_init(elev=156., azim=100)
+        if DIM == 4:
+            GRAPHIC.view_init(elev=156., azim=100)
+        elif DIM == 3:
+            GRAPHIC.view_init(elev=90., azim=90)
         pl.axis('off')
         if PAUSE != 0.0:
             pl.ion()
@@ -686,5 +709,4 @@ def main(argv):
         pl.show()
 
 if __name__ == '__main__':
-    #main(sys.argv[1:])
-    main_musc()
+    main(sys.argv[1:])

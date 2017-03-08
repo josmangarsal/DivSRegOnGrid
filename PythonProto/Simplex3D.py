@@ -148,6 +148,42 @@ class CDSimplex(object):
 
         return new_2usc_simplices
 
+    def musc_centers(self):
+        """Calculation of Ct1..tn"""
+        centers = []
+
+        # TODO Recursive to any DIM
+        for i in range(0, DIM+1):
+            for j in range(0, DIM+1):
+                for k in range(0, DIM+1):
+                    if i + j + k == DIM:
+                        centers.append([i, j, k])
+
+        return centers
+
+    def divide_musc(self, simplices_per_edge, red_factor):
+        """MUSC regular division"""
+        if self.size <= EPS:
+            return None
+
+        self.musc_centers()
+        return None
+
+        number_new_simplices = math.factorial(simplices_per_edge + DIM - 2) / (math.factorial(simplices_per_edge - 1) * math.factorial(DIM - 3))
+
+        new_radius = self.radius * red_factor
+        new_size = self.size * red_factor
+
+        new_simplices = []
+        for i in xrange(number_new_simplices): # Number of new simplices
+            new_center = []
+
+            new_center.append(0.0)
+
+            new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
+
+        return new_simplices
+
     def print_cdsimplex(self):
         """Print simplex"""
         print 'Dim=', DIM
@@ -384,6 +420,8 @@ def draw_2d_puntos(simplex):
 
 def main_leb():
     """Main LEB"""
+    global EPS
+
     working_list = []
 
     initial_unit_simplex_vertices = []
@@ -398,6 +436,8 @@ def main_leb():
 
     simplex_inicial = Simplex(initial_unit_simplex_vertices)
     working_list.append(simplex_inicial)
+
+    EPS *= simplex_inicial.size
 
     if DRAW:
         if DIM == 3:
@@ -471,6 +511,8 @@ def vertices_to_cdsimplex(vertices):
 
 def main_rbr():
     """Main RbR"""
+    global EPS
+
     working_list = []
     initial_unit_simplex_vertices = []
 
@@ -484,6 +526,8 @@ def main_rbr():
         initial_unit_simplex_vertices.append(coor)
 
     simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
+
+    EPS *= simplex_cdinicial.size
 
     if DRAW:
         if DIM == 4:
@@ -526,6 +570,8 @@ def main_rbr():
 
 def main_musc():
     """Main mUSC"""
+    global EPS
+
     working_list = []
     initial_unit_simplex_vertices = []
 
@@ -540,6 +586,8 @@ def main_musc():
 
     simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
 
+    EPS *= simplex_cdinicial.size
+
     if DRAW:
         if DIM == 4:
             draw_cdsimplex_3d_init(simplex_cdinicial)
@@ -549,13 +597,8 @@ def main_musc():
         if PAUSE != 0.0:
             pl.pause(PAUSE)
 
-    beta = 0.0
-    rho = 0.0
-
-    if DIV == '2usc':
-        beta = (DIM - 1.0) / DIM
-    elif DIV == '2musc':
-        rho = (DIM - 2.0) / (DIM - 1.0)
+    m_simplices_per_edge = 4 # Simplices per edge
+    reduction_factor = (DIM - 1) / (m_simplices_per_edge - DIM - 2)
 
     working_list.append(simplex_cdinicial)
 
@@ -569,11 +612,7 @@ def main_musc():
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        cdsimplices = None
-        if DIV == '2usc':
-            cdsimplices = cdsimplex.divide_2usc(beta)
-        elif DIV == '2musc':
-            cdsimplices = cdsimplex.divide_2musc(rho)
+        cdsimplices = cdsimplex.divide_musc(m_simplices_per_edge, reduction_factor)
 
         if cdsimplices is not None:
             for new_cdsimplex in cdsimplices:

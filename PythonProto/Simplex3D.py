@@ -699,7 +699,7 @@ def main_musc():
                 working_list.append(new_cdsimplex)
 
 def main_bigusc():
-    """Main BIGUSC"""
+    """Main bigUSC"""
     global EPS
     global SIMPLICES_PER_EDGE
 

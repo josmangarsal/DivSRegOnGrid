@@ -16,6 +16,7 @@ DIV = '2usc'
 DRAW = True
 PAUSE = 0
 SIMPLICES_PER_EDGE = 4
+BETA = 0.5
 
 # GLOBAL METHODS
 
@@ -149,41 +150,22 @@ class CDSimplex(object):
 
         return new_2usc_simplices
 
-    def musc_centers_recv(self, centers, index):
-        """Calculation of Ct1..tn"""
-        if len(index) == DIM:
-            sum = 0
-            for i in index:
-                sum += i
-
-            if sum == DIM:
-                center = []
-                for i in index:
-                    center.append(i)
-                centers.append(center)
-        else:
-            for i in range(0, DIM+1):
-                index.append(i)
-                self.musc_centers(centers, index)
-
-        return centers
-
     def musc_centers(self):
         """Calculation of Ct1..tn"""
         centers = []
 
         if DIM == 3:
-            for i in range(0, DIM+1):
-                for j in range(0, DIM+1):
-                    for k in range(0, DIM+1):
-                        if i + j + k == DIM:
+            for i in range(0, SIMPLICES_PER_EDGE):
+                for j in range(0, SIMPLICES_PER_EDGE):
+                    for k in range(0, SIMPLICES_PER_EDGE):
+                        if i + j + k == SIMPLICES_PER_EDGE - 1:
                             centers.append([i, j, k])
         elif DIM == 4:
-            for i in range(0, DIM+1):
-                for j in range(0, DIM+1):
-                    for k in range(0, DIM+1):
-                        for l in range(0, DIM+1):
-                            if i + j + k + l == DIM:
+            for i in range(0, SIMPLICES_PER_EDGE):
+                for j in range(0, SIMPLICES_PER_EDGE):
+                    for k in range(0, SIMPLICES_PER_EDGE):
+                        for l in range(0, SIMPLICES_PER_EDGE):
+                            if i + j + k + l == SIMPLICES_PER_EDGE - 1:
                                 centers.append([i, j, k, l])
 
         return centers
@@ -205,7 +187,7 @@ class CDSimplex(object):
 
         t_ns = self.musc_centers() # t1..tn
 
-        #number_new_simplices = math.factorial(simplices_per_edge + DIM - 2) / (math.factorial(simplices_per_edge - 1) * math.factorial(DIM - 3))
+        #number_new_simplices = math.factorial(SIMPLICES_PER_EDGE + DIM - 2) / (math.factorial(SIMPLICES_PER_EDGE - 1) * math.factorial(DIM - 1))
 
         new_radius = self.radius * red_factor
         new_size = self.size * red_factor
@@ -228,7 +210,7 @@ class CDSimplex(object):
 
         return new_simplices
 
-    def divide_bigusc(self, red_factor):
+    def divide_bigusc(self, gamma):
         """BIGUSC regular division"""
         if self.size <= EPS:
             return None
@@ -250,10 +232,9 @@ class CDSimplex(object):
             if aux[len(aux)-1] == 0:
                 t_ns.append(aux)
 
-        #number_new_simplices = math.factorial(simplices_per_edge + DIM - 2) / (math.factorial(simplices_per_edge - 1) * math.factorial(DIM - 3))
-
-        new_radius = self.radius * red_factor
-        new_size = self.size * red_factor
+        # SIMPLICES_PER_EDGE of gamma size on one facet
+        new_radius = self.radius * gamma
+        new_size = self.size * gamma
 
         new_simplices = []
         for t_n in t_ns:
@@ -266,10 +247,21 @@ class CDSimplex(object):
                     sumita += elem * matrix_to_vertices[j][i]
                     j += 1
 
-                center = self.centre[i] + (((1 - red_factor) * self.radius) / (SIMPLICES_PER_EDGE - 1)) * sumita
+                center = self.centre[i] + (((1 - gamma) * self.radius) / (SIMPLICES_PER_EDGE - 1)) * sumita
                 new_center.append(center)
 
             new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
+
+        # One bigger simplex of BETA size on the opposite facet
+        new_radius = self.radius * BETA
+        new_size = self.size * BETA
+
+        new_center = []
+
+        for k in xrange(DIM): # New center
+            new_center.append(self.centre[k] - (1.0 - BETA) * self.radius / DIM)
+        new_center[DIM-1] += self.radius * (1.0 - BETA)
+        new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
 
         return new_simplices
 
@@ -695,7 +687,7 @@ def main_musc():
             if DIM == 4:
                 draw_cdsimplex_3d(cdsimplex)
             elif DIM == 3:
-                draw_cdsimplex_2d(cdsimplex)
+                draw_cdsimplex_2d_init(cdsimplex)
 
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
@@ -709,6 +701,7 @@ def main_musc():
 def main_bigusc():
     """Main BIGUSC"""
     global EPS
+    global SIMPLICES_PER_EDGE
 
     working_list = []
     initial_unit_simplex_vertices = []
@@ -735,7 +728,9 @@ def main_bigusc():
         if PAUSE != 0.0:
             pl.pause(PAUSE)
 
-    reduction_factor = (DIM - 1.0) / (SIMPLICES_PER_EDGE + DIM - 2.0)
+    # TODO Reduction factors, m small simplices of gamma size and one big of beta size
+    #gamma = (DIM - 1.0) / (SIMPLICES_PER_EDGE + DIM - 2.0)
+    gamma = (DIM - 2 + (1 - BETA) * (SIMPLICES_PER_EDGE - 1)) / ((SIMPLICES_PER_EDGE - 1) * (DIM - 1) - (SIMPLICES_PER_EDGE - 2) * (DIM - 2))
 
     working_list.append(simplex_cdinicial)
 
@@ -749,7 +744,7 @@ def main_bigusc():
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        cdsimplices = cdsimplex.divide_bigusc(reduction_factor)
+        cdsimplices = cdsimplex.divide_bigusc(gamma)
 
         if cdsimplices is not None:
             for new_cdsimplex in cdsimplices:
@@ -776,7 +771,7 @@ def menu(argument):
 
 def help_commands():
     """Command help"""
-    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time> -m <mUSC: edge_per_vertex>'
+    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time> -m <edge_per_vertex> -b <beta>'
     print 'Division methods: leb, 2usc, 2musc, musc or bigusc'
     print 'Time: 0 to show final result, 0.05 to show step by step or -1 to not to draw'
     sys.exit(2)
@@ -789,9 +784,10 @@ def main(argv):
     global PAUSE
     global DRAW
     global SIMPLICES_PER_EDGE
+    global BETA
 
     try:
-        opts, args = getopt.getopt(argv, "D:d:e:P:m:")
+        opts, args = getopt.getopt(argv, "D:d:e:P:m:b:")
     except getopt.GetoptError:
         help_commands()
     print opts
@@ -814,6 +810,8 @@ def main(argv):
                 DRAW = False
         elif opt == "-m":
             SIMPLICES_PER_EDGE = int(arg)
+        elif opt == "-b":
+            BETA = float(arg)
 
     if DRAW:
         if DIM == 4:

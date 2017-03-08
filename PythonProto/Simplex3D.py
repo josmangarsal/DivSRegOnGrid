@@ -7,6 +7,7 @@ import mpl_toolkits.mplot3d as a3
 import matplotlib.colors as colors
 import pylab as pl
 import scipy as sp
+from matplotlib.backends.backend_pdf import PdfPages
 
 # GLOBAL VARIABLES
 
@@ -299,7 +300,8 @@ class CDSimplex(object):
 
 # DRAWING
 
-GRAPHIC = a3.Axes3D(pl.figure())
+FIG = pl.figure()
+GRAPHIC = a3.Axes3D(FIG)
 
 def draw_point(vertex, color):
     """Draw a point"""
@@ -771,7 +773,7 @@ def menu(argument):
 
 def help_commands():
     """Command help"""
-    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time> -m <edge_per_vertex> -b <beta>'
+    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time> -m <edge_per_vertex> -b <beta> -s <y/n>'
     print 'Division methods: leb, 2usc, 2musc, musc or bigusc'
     print 'Time: 0 to show final result, 0.05 to show step by step or -1 to not to draw'
     sys.exit(2)
@@ -786,8 +788,10 @@ def main(argv):
     global SIMPLICES_PER_EDGE
     global BETA
 
+    save = 'n'
+
     try:
-        opts, args = getopt.getopt(argv, "D:d:e:P:m:b:")
+        opts, args = getopt.getopt(argv, "D:d:e:P:m:b:s:")
     except getopt.GetoptError:
         help_commands()
     print opts
@@ -812,6 +816,10 @@ def main(argv):
             SIMPLICES_PER_EDGE = int(arg)
         elif opt == "-b":
             BETA = float(arg)
+        elif opt == "-s":
+            save = arg
+
+    title = 'Simplex3D '
 
     if DRAW:
         if DIM == 4:
@@ -822,12 +830,22 @@ def main(argv):
         if PAUSE != 0.0:
             pl.ion()
 
+        for (opt, arg) in opts:
+            title += opt + ' ' + arg + ' '
+        pl.title(title)
+
     menu((DIV, DIM))
 
     if DRAW:
         if PAUSE != 0.0:
             pl.ioff()
-        pl.show()
+        if save == 'y':
+            title = title.replace(' ', '_')
+            pp = PdfPages(title + ".pdf")
+            pp.savefig(FIG)
+            pp.close()
+        else:
+            pl.show()
 
 if __name__ == '__main__':
     main(sys.argv[1:])

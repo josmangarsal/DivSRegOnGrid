@@ -15,6 +15,7 @@ DIM = 3
 DIV = '2usc'
 DRAW = True
 PAUSE = 0
+SIMPLICES_PER_EDGE = 4
 
 # GLOBAL METHODS
 
@@ -148,20 +149,46 @@ class CDSimplex(object):
 
         return new_2usc_simplices
 
+    def musc_centers_recv(self, centers, index):
+        """Calculation of Ct1..tn"""
+        if len(index) == DIM:
+            sum = 0
+            for i in index:
+                sum += i
+
+            if sum == DIM:
+                center = []
+                for i in index:
+                    center.append(i)
+                centers.append(center)
+        else:
+            for i in range(0, DIM+1):
+                index.append(i)
+                self.musc_centers(centers, index)
+
+        return centers
+
     def musc_centers(self):
         """Calculation of Ct1..tn"""
         centers = []
 
-        # TODO Recursive to any DIM
-        for i in range(0, DIM+1):
-            for j in range(0, DIM+1):
-                for k in range(0, DIM+1):
-                    if i + j + k == DIM:
-                        centers.append([i, j, k])
+        if DIM == 3:
+            for i in range(0, DIM+1):
+                for j in range(0, DIM+1):
+                    for k in range(0, DIM+1):
+                        if i + j + k == DIM:
+                            centers.append([i, j, k])
+        elif DIM == 4:
+            for i in range(0, DIM+1):
+                for j in range(0, DIM+1):
+                    for k in range(0, DIM+1):
+                        for l in range(0, DIM+1):
+                            if i + j + k + l == DIM:
+                                centers.append([i, j, k, l])
 
         return centers
 
-    def divide_musc(self, simplices_per_edge, red_factor):
+    def divide_musc(self, red_factor):
         """MUSC regular division"""
         if self.size <= EPS:
             return None
@@ -194,7 +221,52 @@ class CDSimplex(object):
                     sumita += elem * matrix_to_vertices[j][i]
                     j += 1
 
-                center = self.centre[i] + (((1 - red_factor) * self.radius) / (simplices_per_edge - 1)) * sumita
+                center = self.centre[i] + (((1 - red_factor) * self.radius) / (SIMPLICES_PER_EDGE - 1)) * sumita
+                new_center.append(center)
+
+            new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
+
+        return new_simplices
+
+    def divide_bigusc(self, red_factor):
+        """BIGUSC regular division"""
+        if self.size <= EPS:
+            return None
+
+        matrix_to_vertices = [] # D (d1..dn)
+        for i in xrange(DIM):
+            coor = []
+            for j in xrange(DIM):
+                if i == j:
+                    coor.append((DIM - 1.0) / DIM)
+                else:
+                    coor.append(-1.0 / DIM)
+            matrix_to_vertices.append(coor)
+
+        aux_t_ns = self.musc_centers() # t1..tn
+        # Just one facet
+        t_ns = []
+        for aux in aux_t_ns:
+            if aux[len(aux)-1] == 0:
+                t_ns.append(aux)
+
+        #number_new_simplices = math.factorial(simplices_per_edge + DIM - 2) / (math.factorial(simplices_per_edge - 1) * math.factorial(DIM - 3))
+
+        new_radius = self.radius * red_factor
+        new_size = self.size * red_factor
+
+        new_simplices = []
+        for t_n in t_ns:
+            new_center = []
+
+            for i in range(DIM):
+                sumita = 0
+                j = 0
+                for elem in t_n:
+                    sumita += elem * matrix_to_vertices[j][i]
+                    j += 1
+
+                center = self.centre[i] + (((1 - red_factor) * self.radius) / (SIMPLICES_PER_EDGE - 1)) * sumita
                 new_center.append(center)
 
             new_simplices.append(CDSimplex(new_center, new_radius, new_size, True))
@@ -614,8 +686,7 @@ def main_musc():
         if PAUSE != 0.0:
             pl.pause(PAUSE)
 
-    m_simplices_per_edge = 4 # Simplices per edge
-    reduction_factor = (DIM - 1.0) / (m_simplices_per_edge + DIM - 2.0)
+    reduction_factor = (DIM - 1.0) / (SIMPLICES_PER_EDGE + DIM - 2.0)
 
     working_list.append(simplex_cdinicial)
 
@@ -629,9 +700,56 @@ def main_musc():
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        cdsimplex.print_cdsimplex()
+        cdsimplices = cdsimplex.divide_musc(reduction_factor)
 
-        cdsimplices = cdsimplex.divide_musc(m_simplices_per_edge, reduction_factor)
+        if cdsimplices is not None:
+            for new_cdsimplex in cdsimplices:
+                working_list.append(new_cdsimplex)
+
+def main_bigusc():
+    """Main BIGUSC"""
+    global EPS
+
+    working_list = []
+    initial_unit_simplex_vertices = []
+
+    for i in xrange(DIM):
+        coor = []
+        for j in xrange(DIM):
+            if i == j:
+                coor.append(1.0)
+            else:
+                coor.append(0.0)
+        initial_unit_simplex_vertices.append(coor)
+
+    simplex_cdinicial = vertices_to_cdsimplex(initial_unit_simplex_vertices)
+
+    EPS *= simplex_cdinicial.size
+
+    if DRAW:
+        if DIM == 4:
+            draw_cdsimplex_3d_init(simplex_cdinicial)
+        elif DIM == 3:
+            draw_cdsimplex_2d_init(simplex_cdinicial)
+
+        if PAUSE != 0.0:
+            pl.pause(PAUSE)
+
+    reduction_factor = (DIM - 1.0) / (SIMPLICES_PER_EDGE + DIM - 2.0)
+
+    working_list.append(simplex_cdinicial)
+
+    for cdsimplex in working_list:
+        if DRAW:
+            if DIM == 4:
+                draw_cdsimplex_3d(cdsimplex)
+            elif DIM == 3:
+                draw_cdsimplex_2d(cdsimplex)
+
+            if PAUSE != 0.0:
+                pl.pause(PAUSE)
+
+        cdsimplices = cdsimplex.divide_bigusc(reduction_factor)
 
         if cdsimplices is not None:
             for new_cdsimplex in cdsimplices:
@@ -647,6 +765,9 @@ def menu(argument):
         ('2musc', 3): main_rbr,
         ('2musc', 4): main_rbr,
         ('musc', 3): main_musc,
+        ('musc', 4): main_musc,
+        ('bigusc', 3): main_bigusc,
+        ('bigusc', 4): main_bigusc,
     }
 
     func = switcher.get(argument, lambda: "nothing")
@@ -655,8 +776,8 @@ def menu(argument):
 
 def help_commands():
     """Command help"""
-    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time>'
-    print 'Division methods: leb, 2usc or 2musc'
+    print 'Draw2d.py -D <division_method> -d <dimension> -e <epsilon> -P <time> -m <mUSC: edge_per_vertex>'
+    print 'Division methods: leb, 2usc, 2musc, musc or bigusc'
     print 'Time: 0 to show final result, 0.05 to show step by step or -1 to not to draw'
     sys.exit(2)
 
@@ -667,9 +788,10 @@ def main(argv):
     global DIV
     global PAUSE
     global DRAW
+    global SIMPLICES_PER_EDGE
 
     try:
-        opts, args = getopt.getopt(argv, "D:d:e:P:")
+        opts, args = getopt.getopt(argv, "D:d:e:P:m:")
     except getopt.GetoptError:
         help_commands()
     print opts
@@ -681,7 +803,7 @@ def main(argv):
         elif opt == "-e":
             EPS = float(arg)
         elif opt == "-D":
-            if arg in ('leb', '2usc', '2musc', 'musc'):
+            if arg in ('leb', '2usc', '2musc', 'musc', 'bigusc'):
                 DIV = arg
             else:
                 print 'Division methods: leb, 2usc or 2musc'
@@ -690,7 +812,8 @@ def main(argv):
             PAUSE = float(arg)
             if PAUSE == -1:
                 DRAW = False
-
+        elif opt == "-m":
+            SIMPLICES_PER_EDGE = int(arg)
 
     if DRAW:
         if DIM == 4:

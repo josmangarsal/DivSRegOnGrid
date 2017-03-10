@@ -381,6 +381,22 @@ def draw_cdsimplex_3d(cdsimplex):
     draw_line(vertices_3d[0], vertices_3d[2], vertices_3d[3])
     draw_line(vertices_3d[1], vertices_3d[2], vertices_3d[3])
 
+def draw_cdsimplex_3d_plain(cdsimplex):
+    """Draw cd simplex using centre, radius and vertices"""
+    matrix_to_3d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, -2/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, 0, -3/math.sqrt(12)]]
+
+    vertices = cdsimplex.to_vertices()
+
+    vertices_3d = np.matmul(vertices, matrix_to_3d)
+
+    draw_plain(vertices_3d[0], vertices_3d[1], vertices_3d[2])
+    draw_plain(vertices_3d[0], vertices_3d[1], vertices_3d[3])
+    draw_plain(vertices_3d[0], vertices_3d[2], vertices_3d[3])
+    draw_plain(vertices_3d[1], vertices_3d[2], vertices_3d[3])
+
 def draw_cdsimplex_2d_init(cdsimplex):
     """Draw cd simplex using centre, radius and vertices"""
     matrix_to_2d = [[1/math.sqrt(2), 1/math.sqrt(6)],
@@ -704,6 +720,7 @@ def main_bigusc():
     """Main bigUSC"""
     global EPS
     global SIMPLICES_PER_EDGE
+    global BETA
 
     working_list = []
     initial_unit_simplex_vertices = []
@@ -739,7 +756,10 @@ def main_bigusc():
     for cdsimplex in working_list:
         if DRAW:
             if DIM == 4:
-                draw_cdsimplex_3d(cdsimplex)
+		if cdsimplex.radius >= BETA:
+	                draw_cdsimplex_3d(cdsimplex)
+		else:
+			draw_cdsimplex_3d_plain(cdsimplex)
             elif DIM == 3:
                 draw_cdsimplex_2d(cdsimplex)
 

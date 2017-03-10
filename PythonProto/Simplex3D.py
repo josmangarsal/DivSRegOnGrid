@@ -11,13 +11,14 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 # GLOBAL VARIABLES
 
-EPS = 0.9
+EPS = 0.0
 DIM = 3
 DIV = '2usc'
 DRAW = True
 PAUSE = 0
 SIMPLICES_PER_EDGE = 4
 BETA = 0.5
+FIRST_DIV = False
 
 # GLOBAL METHODS
 
@@ -49,6 +50,7 @@ class Simplex(object):
 
         self.distances.sort(key=lambda x: (-x[0], x[1][0], x[1][0]))
         self.longest_edge = self.distances[0]
+        self.size = self.distances[0][0]
 
     def copy_vertices(self):
         """Copy vertices to child"""
@@ -520,6 +522,7 @@ def draw_2d_puntos(simplex):
 def main_leb():
     """Main LEB"""
     global EPS
+    global FIRST_DIV
 
     working_list = []
 
@@ -559,13 +562,17 @@ def main_leb():
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        (vertices1, vertices2) = simplex.leb()
+        if FIRST_DIV is False:
+            (vertices1, vertices2) = simplex.leb()
 
-        if vertices1 == 0 and vertices2 == 0:
-            continue
+            if vertices1 == 0 and vertices2 == 0:
+                continue
 
-        working_list.append(Simplex(vertices1))
-        working_list.append(Simplex(vertices2))
+            working_list.append(Simplex(vertices1))
+            working_list.append(Simplex(vertices2))
+
+            if EPS == 0.0:
+                FIRST_DIV = True
 
 # RbR general methods
 
@@ -611,6 +618,7 @@ def vertices_to_cdsimplex(vertices):
 def main_rbr():
     """Main RbR"""
     global EPS
+    global FIRST_DIV
 
     working_list = []
     initial_unit_simplex_vertices = []
@@ -657,19 +665,24 @@ def main_rbr():
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        cdsimplices = None
-        if DIV == '2usc':
-            cdsimplices = cdsimplex.divide_2usc(beta)
-        elif DIV == '2musc':
-            cdsimplices = cdsimplex.divide_2musc(rho)
+        if FIRST_DIV is False:
+            cdsimplices = None
+            if DIV == '2usc':
+                cdsimplices = cdsimplex.divide_2usc(beta)
+            elif DIV == '2musc':
+                cdsimplices = cdsimplex.divide_2musc(rho)
 
-        if cdsimplices is not None:
-            for new_cdsimplex in cdsimplices:
-                working_list.append(new_cdsimplex)
+            if cdsimplices is not None:
+                for new_cdsimplex in cdsimplices:
+                    working_list.append(new_cdsimplex)
+
+            if EPS == 0.0:
+                FIRST_DIV = True
 
 def main_musc():
     """Main mUSC"""
     global EPS
+    global FIRST_DIV
 
     working_list = []
     initial_unit_simplex_vertices = []
@@ -710,17 +723,22 @@ def main_musc():
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        cdsimplices = cdsimplex.divide_musc(reduction_factor)
+        if FIRST_DIV is False:
+            cdsimplices = cdsimplex.divide_musc(reduction_factor)
 
-        if cdsimplices is not None:
-            for new_cdsimplex in cdsimplices:
-                working_list.append(new_cdsimplex)
+            if cdsimplices is not None:
+                for new_cdsimplex in cdsimplices:
+                    working_list.append(new_cdsimplex)
+
+            if EPS == 0.0:
+                FIRST_DIV = True
 
 def main_bigusc():
     """Main bigUSC"""
     global EPS
     global SIMPLICES_PER_EDGE
     global BETA
+    global FIRST_DIV
 
     working_list = []
     initial_unit_simplex_vertices = []
@@ -747,8 +765,6 @@ def main_bigusc():
         if PAUSE != 0.0:
             pl.pause(PAUSE)
 
-    # TODO Reduction factors, m small simplices of gamma size and one big of beta size
-    #gamma = (DIM - 1.0) / (SIMPLICES_PER_EDGE + DIM - 2.0)
     gamma = (DIM - 2 + (1 - BETA) * (SIMPLICES_PER_EDGE - 1)) / ((SIMPLICES_PER_EDGE - 1) * (DIM - 1) - (SIMPLICES_PER_EDGE - 2) * (DIM - 2))
 
     working_list.append(simplex_cdinicial)
@@ -756,21 +772,25 @@ def main_bigusc():
     for cdsimplex in working_list:
         if DRAW:
             if DIM == 4:
-		if cdsimplex.radius >= BETA:
-	                draw_cdsimplex_3d(cdsimplex)
-		else:
-			draw_cdsimplex_3d_plain(cdsimplex)
+                if cdsimplex.radius == gamma:
+                    draw_cdsimplex_3d_plain(cdsimplex)
+                else:
+                    draw_cdsimplex_3d(cdsimplex)
             elif DIM == 3:
                 draw_cdsimplex_2d(cdsimplex)
 
             if PAUSE != 0.0:
                 pl.pause(PAUSE)
 
-        cdsimplices = cdsimplex.divide_bigusc(gamma)
+        if FIRST_DIV is False:
+            cdsimplices = cdsimplex.divide_bigusc(gamma)
 
-        if cdsimplices is not None:
-            for new_cdsimplex in cdsimplices:
-                working_list.append(new_cdsimplex)
+            if cdsimplices is not None:
+                for new_cdsimplex in cdsimplices:
+                    working_list.append(new_cdsimplex)
+
+            if EPS == 0.0:
+                FIRST_DIV = True
 
 def menu(argument):
     """Menu"""
@@ -807,6 +827,7 @@ def main(argv):
     global DRAW
     global SIMPLICES_PER_EDGE
     global BETA
+    global FIRST_DIV
 
     save = 'n'
 

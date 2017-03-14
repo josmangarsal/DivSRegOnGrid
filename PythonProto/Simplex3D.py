@@ -31,6 +31,53 @@ def dist_points(point1, point2):
 
     return math.sqrt(sum)
 
+def subMatrix(oldmat, row, col):
+    m = 0
+    k = 0
+
+    retmat = []
+
+    for j in xrange(len(oldmat)):
+        if j != row:
+            for i in xrange(len(oldmat)):
+                if i != col:
+                    retmat[k][m] = oldmat[j][i]
+                    m += 1
+            k += 1
+        m = 0
+    return retmat
+
+def determinant(mat):
+    row = len(mat)
+
+    if row == 1:
+        return mat[0][0]
+    elif row == 2:
+        return (mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0])
+    else:
+        val = 0
+        i = 0
+        while i < row:
+            if mat[0][i] == 0:
+                i += 1
+            if i < row:
+                newDet = subMatrix(mat, 0, i)
+                val += mat[0][i] * math.pow(-1, i) * determinant(newDet)
+        return val
+
+def internalCoordinates(cdsimplex):
+    vertices = cdsimplex.to_vertices()
+    internal_vertices = []
+    for vertex in vertices:
+        onezerzero = False
+        for coor in vertex:
+            if coor == 1:
+                onezerzero = True
+                break
+        if onezerzero is False:
+            internal_vertices.append(vertex)
+    return internal_vertices
+
 # CLASSES
 
 class Simplex(object):
@@ -309,6 +356,17 @@ def draw_point(vertex, color):
     """Draw a point"""
     GRAPHIC.scatter(vertex[0], vertex[1], vertex[2], c=color, s=100)
 
+def draw_3d_point(vertex, color):
+    """Draw a 3D point with the matrix"""
+    matrix_to_3d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, -2/math.sqrt(6), 1/math.sqrt(12)],
+                    [0, 0, -3/math.sqrt(12)]]
+
+    new_vertex = np.matmul(vertex, matrix_to_3d)
+
+    GRAPHIC.scatter(new_vertex[0], new_vertex[1], new_vertex[2], c=color, s=100)
+
 def draw_plain(vertex1, vertex2, vertex3):
     """draw a plain"""
     vtx = [vertex1, vertex2, vertex3]
@@ -326,7 +384,7 @@ def draw_line(vertex1, vertex2, vertex3):
 
 def draw_simplex(simplex3d):
     """Draw simplex using lines"""
-    simplex3d = to_3d(simplex3d)
+    simplex3d = to_3d(simplex3d.vertices)
 
     draw_line(simplex3d[0], simplex3d[1], simplex3d[2])
     draw_line(simplex3d[0], simplex3d[1], simplex3d[3])
@@ -335,7 +393,7 @@ def draw_simplex(simplex3d):
 
 def draw_simplex_3d_vertices(simplex3d):
     """Draw simplex using lines"""
-    simplex3d = to_3d(simplex3d)
+    simplex3d = to_3d(simplex3d.vertices)
 
     draw_line(simplex3d[0], simplex3d[1], simplex3d[2])
     draw_line(simplex3d[0], simplex3d[1], simplex3d[3])
@@ -453,17 +511,14 @@ def draw_cdsimplex_2d(cdsimplex):
 
 # Convert dimension
 
-def to_3d(simplex):
+def to_3d(vertices):
     """4 dimension simplex to 3 dimension representation"""
     matrix_to_3d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
                     [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
                     [0, -2/math.sqrt(6), 1/math.sqrt(12)],
                     [0, 0, -3/math.sqrt(12)]]
 
-    if len(simplex.vertices) != 4:
-        print 'Error: Vertices is not a 4 dimension simplex'
-
-    return np.matmul(simplex.vertices, matrix_to_3d)
+    return np.matmul(vertices, matrix_to_3d)
 
 # Dim 2 convert and draw
 
@@ -545,7 +600,7 @@ def main_leb():
         if DIM == 3:
             draw_2d_puntos(simplex_inicial)
         elif DIM == 4:
-            vertices = to_3d(simplex_inicial)
+            vertices = to_3d(simplex_inicial.vertices)
             for vertex in vertices:
                 draw_point(vertex, 'g')
 
@@ -772,10 +827,10 @@ def main_bigusc():
     for cdsimplex in working_list:
         if DRAW:
             if DIM == 4:
-                if cdsimplex.radius == gamma:
-                    draw_cdsimplex_3d_plain(cdsimplex)
-                else:
-                    draw_cdsimplex_3d(cdsimplex)
+                #if cdsimplex.radius == gamma:
+                #    draw_cdsimplex_3d_plain(cdsimplex)
+                #else:
+                draw_cdsimplex_3d(cdsimplex)
             elif DIM == 3:
                 draw_cdsimplex_2d(cdsimplex)
 
@@ -785,9 +840,57 @@ def main_bigusc():
         if FIRST_DIV is False:
             cdsimplices = cdsimplex.divide_bigusc(gamma)
 
+            # Intersection between internal planes
+            mat = []
+            plane_number = 0
+
             if cdsimplices is not None:
                 for new_cdsimplex in cdsimplices:
                     working_list.append(new_cdsimplex)
+
+                    # Intersection between internal planes
+                    if DIM == 4:
+                        if plane_number < DIM-1: # N first planes, the gamma simplices
+                            internal_vertices = internalCoordinates(new_cdsimplex)
+                            internal_vertices_3d = to_3d(internal_vertices)
+
+                            mat.append([internal_vertices_3d])
+                            plane_number += 1
+
+                            #draw_plain(internal_vertices_3d[0], internal_vertices_3d[1],
+                            #        internal_vertices_3d[2])
+
+                # Intersection between internal planes, Cramer's Rule
+                coef = []
+                A = []
+                B = []
+                C = []
+
+                D = []
+
+                for (aux_a, aux_b, aux_c, aux_d) in planes:
+                    A.append(aux_a)
+                    B.append(aux_b)
+                    C.append(aux_c)
+                    D.append(aux_d)
+
+                coef.append(A)
+                coef.append(B)
+                coef.append(C)
+
+                a = np.array(coef)
+                b = np.array(D)
+                print 'coef='
+                print coef
+                print 'a='
+                print a
+                print 'b='
+                print b
+                x = np.linalg.solve(a, b)
+                print x
+
+                draw_point(x, 'g')
+                draw_point([0, 0, -0.289], 'y')
 
             if EPS == 0.0:
                 FIRST_DIV = True

@@ -31,41 +31,47 @@ def dist_points(point1, point2):
 
     return math.sqrt(sum)
 
-def subMatrix(oldmat, row, col):
-    m = 0
-    k = 0
-
-    retmat = []
-
-    for j in xrange(len(oldmat)):
-        if j != row:
-            for i in xrange(len(oldmat)):
-                if i != col:
-                    retmat[k][m] = oldmat[j][i]
-                    m += 1
-            k += 1
-        m = 0
-    return retmat
-
 def determinant(mat):
-    row = len(mat)
+    return np.linalg.det(mat)
 
-    if row == 1:
-        return mat[0][0]
-    elif row == 2:
-        return (mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0])
+def replaceCol(mat, a):
+    new_mat = []
+
+    for col in mat:
+        new_row = []
+        for cell in col:
+            new_row.append(cell)
+        new_mat.append(new_row)
+
+    for i in xrange(3):
+        new_mat[i][a] = -1
+
+    return new_mat
+
+def plane_eq(mat):
+    det = determinant(mat)
+
+    if det != 0:
+        matret = replaceCol(mat, 0)
+        A = determinant(matret) / det
+        matret = replaceCol(mat, 1)
+        B = determinant(matret) / det
+        matret = replaceCol(mat, 2)
+        C = determinant(matret) / det
+        D = -1
+
+        return (A, B, C, D)
     else:
-        val = 0
-        i = 0
-        while i < row:
-            if mat[0][i] == 0:
-                i += 1
-            if i < row:
-                newDet = subMatrix(mat, 0, i)
-                val += mat[0][i] * math.pow(-1, i) * determinant(newDet)
-        return val
+        print 'Error: plane_eq, det == 0'
 
-def internalCoordinates(cdsimplex):
+def intersection_point(planes):
+    mat = []
+    for (A, B, C, D) in planes:
+        mat.append([A, B, C])
+    (x,y,z,D) = plane_eq(mat)
+    return [x, y, z]
+
+def internal_coordinates(cdsimplex):
     vertices = cdsimplex.to_vertices()
     internal_vertices = []
     for vertex in vertices:
@@ -86,9 +92,9 @@ class Simplex(object):
     def __init__(self, vertices):
         self.vertices = vertices
         self.distances = []
-        self.size()
+        self.get_size()
 
-    def size(self):
+    def get_size(self):
         """Size of each edge of the simplex, sort and LE calculation"""
         for i in xrange(DIM):
             for j in range(i+1, DIM):
@@ -367,8 +373,8 @@ def draw_3d_point(vertex, color):
 
     GRAPHIC.scatter(new_vertex[0], new_vertex[1], new_vertex[2], c=color, s=100)
 
-def draw_plain(vertex1, vertex2, vertex3):
-    """draw a plain"""
+def draw_plane(vertex1, vertex2, vertex3):
+    """draw a plane"""
     vtx = [vertex1, vertex2, vertex3]
     tri = a3.art3d.Poly3DCollection([vtx])
     tri.set_color(colors.rgb2hex(sp.rand(3)))
@@ -376,7 +382,7 @@ def draw_plain(vertex1, vertex2, vertex3):
     GRAPHIC.add_collection3d(tri)
 
 def draw_line(vertex1, vertex2, vertex3):
-    """Draw a plain with lines"""
+    """Draw a plane with lines"""
     vtx = [vertex1, vertex2, vertex3, vertex1]
     tri = a3.art3d.Line3DCollection([vtx])
     tri.set_edgecolor('k')
@@ -441,7 +447,7 @@ def draw_cdsimplex_3d(cdsimplex):
     draw_line(vertices_3d[0], vertices_3d[2], vertices_3d[3])
     draw_line(vertices_3d[1], vertices_3d[2], vertices_3d[3])
 
-def draw_cdsimplex_3d_plain(cdsimplex):
+def draw_cdsimplex_3d_plane(cdsimplex):
     """Draw cd simplex using centre, radius and vertices"""
     matrix_to_3d = [[1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
                     [-1/math.sqrt(2), 1/math.sqrt(6), 1/math.sqrt(12)],
@@ -452,10 +458,10 @@ def draw_cdsimplex_3d_plain(cdsimplex):
 
     vertices_3d = np.matmul(vertices, matrix_to_3d)
 
-    draw_plain(vertices_3d[0], vertices_3d[1], vertices_3d[2])
-    draw_plain(vertices_3d[0], vertices_3d[1], vertices_3d[3])
-    draw_plain(vertices_3d[0], vertices_3d[2], vertices_3d[3])
-    draw_plain(vertices_3d[1], vertices_3d[2], vertices_3d[3])
+    draw_plane(vertices_3d[0], vertices_3d[1], vertices_3d[2])
+    draw_plane(vertices_3d[0], vertices_3d[1], vertices_3d[3])
+    draw_plane(vertices_3d[0], vertices_3d[2], vertices_3d[3])
+    draw_plane(vertices_3d[1], vertices_3d[2], vertices_3d[3])
 
 def draw_cdsimplex_2d_init(cdsimplex):
     """Draw cd simplex using centre, radius and vertices"""
@@ -828,7 +834,7 @@ def main_bigusc():
         if DRAW:
             if DIM == 4:
                 #if cdsimplex.radius == gamma:
-                #    draw_cdsimplex_3d_plain(cdsimplex)
+                #    draw_cdsimplex_3d_plane(cdsimplex)
                 #else:
                 draw_cdsimplex_3d(cdsimplex)
             elif DIM == 3:
@@ -840,57 +846,31 @@ def main_bigusc():
         if FIRST_DIV is False:
             cdsimplices = cdsimplex.divide_bigusc(gamma)
 
-            # Intersection between internal planes
-            mat = []
-            plane_number = 0
-
             if cdsimplices is not None:
+                # Intersection between internal planes
+                mat = []
+                plane_number = 0
+
                 for new_cdsimplex in cdsimplices:
                     working_list.append(new_cdsimplex)
 
                     # Intersection between internal planes
-                    if DIM == 4:
+                    if DIM == 4 and SIMPLICES_PER_EDGE == 2:
                         if plane_number < DIM-1: # N first planes, the gamma simplices
-                            internal_vertices = internalCoordinates(new_cdsimplex)
+                            internal_vertices = internal_coordinates(new_cdsimplex)
                             internal_vertices_3d = to_3d(internal_vertices)
 
-                            mat.append([internal_vertices_3d])
+                            mat.append(plane_eq(internal_vertices_3d))
                             plane_number += 1
 
-                            #draw_plain(internal_vertices_3d[0], internal_vertices_3d[1],
+                            #draw_plane(internal_vertices_3d[0], internal_vertices_3d[1],
                             #        internal_vertices_3d[2])
 
                 # Intersection between internal planes, Cramer's Rule
-                coef = []
-                A = []
-                B = []
-                C = []
+                if DIM == 4 and SIMPLICES_PER_EDGE == 2:
+                    inter_point = intersection_point(mat)
+                    draw_point(inter_point, 'g')
 
-                D = []
-
-                for (aux_a, aux_b, aux_c, aux_d) in planes:
-                    A.append(aux_a)
-                    B.append(aux_b)
-                    C.append(aux_c)
-                    D.append(aux_d)
-
-                coef.append(A)
-                coef.append(B)
-                coef.append(C)
-
-                a = np.array(coef)
-                b = np.array(D)
-                print 'coef='
-                print coef
-                print 'a='
-                print a
-                print 'b='
-                print b
-                x = np.linalg.solve(a, b)
-                print x
-
-                draw_point(x, 'g')
-                draw_point([0, 0, -0.289], 'y')
 
             if EPS == 0.0:
                 FIRST_DIV = True
